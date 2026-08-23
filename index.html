@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Командная CRM</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #34d399;
+      --primary: #2563eb;
+      --danger: #ef4444;
+      --input-bg: #0f172a;
+    }
+    [data-theme="light"] {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #059669;
+      --primary: #2563eb;
+      --danger: #dc2626;
+      --input-bg: #f8fafc;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Arial, sans-serif;
+      margin: 0;
+      transition: background 0.2s, color 0.2s;
+    }
+    header {
+      background: var(--card);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    h1 {
+      color: var(--accent);
+      margin: 0;
+      font-size: 17px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    button {
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .logout-btn,
+    .theme-btn,
+    .icon-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .logout-btn {
+      background: var(--danger);
+      border: none;
+      color: white;
+      font-weight: 600;
+    }
+    .login-screen {
+      max-width: 360px;
+      margin: 80px auto;
+      padding: 24px;
+      background: var(--card);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .input-group {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    input,
+    select {
+      width: 100%;
+      padding: 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    input:focus {
+      border-color: var(--accent);
+    }
+    .btn {
+      width: 100%;
+      padding: 11px;
+      background: #059669;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .btn:hover {
+      opacity: 0.92;
+    }
+    .btn-add {
+      width: auto;
+      padding: 8px 14px;
+      background: var(--primary);
+    }
+    .btn-secondary {
+      background: #475569;
+    }
+    .btn-danger {
+      background: var(--danger);
+    }
+    .crm-screen {
+      padding: 16px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .workspace-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 180px;
+      max-width: 320px;
+      position: relative;
+    }
+    .search-box input {
+      padding-left: 34px;
+    }
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    .kanban-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .kanban-col {
+      background: var(--card);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 420px;
+    }
+    .col-title {
+      font-size: 13px;
+      margin: 0 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+    .cards-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 80px;
+    }
+    .cards-container.drag-over {
+      background: rgba(52, 211, 153, 0.12);
+      border-radius: 6px;
+    }
+    .deal-card {
+      background: var(--bg);
+      padding: 11px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      cursor: grab;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      transition: transform 0.15s;
+    }
+    .deal-card:active {
+      cursor: grabbing;
+    }
+    .deal-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+    .deal-budget {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .deal-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .btn-delete {
+      align-self: flex-start;
+      background: none;
+      border: none;
+      color: #f87171;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 0 2px;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 100;
+    }
+    .modal-content {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 340px;
+      border: 1px solid var(--border);
+    }
+    .modal-content.wide {
+      max-width: 600px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .modal-actions .btn {
+      flex: 1;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      font-size: 14px;
+      animation: slideIn 0.25s ease;
+      max-width: 300px;
+    }
+    .toast.success {
+      border-left: 4px solid var(--accent);
+    }
+    .toast.error {
+      border-left: 4px solid var(--danger);
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, transparent 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 6px;
+      height: 70px;
+    }
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .command-palette {
+      position: fixed;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 480px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      z-index: 150;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+    .command-palette input {
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 14px 16px;
+      font-size: 16px;
+    }
+    .command-list {
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .command-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .command-item:hover,
+    .command-item.active {
+      background: rgba(52, 211, 153, 0.12);
+    }
+    .kbd {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .trash-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .trash-item-info {
+      flex: 1;
+    }
+    .trash-item-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .trash-item-actions button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .trash-item-actions .restore-btn {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .trash-item-actions .permanent-btn {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    @media (max-width: 900px) {
+      .kanban-grid {
+        grid-template-columns: 1fr;
+      }
+      .workspace-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-add,
+      .search-box {
+        width: 100%;
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚀 Наша командная CRM</h1>
+    <div id="user-info" class="header-actions hidden">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <button class="icon-btn" id="btn-trash" title="Корзина">
+        🗑️ <span id="trash-count">0</span>
+      </button>
+      <button class="theme-btn" id="btn-theme" title="Тема">🌓</button>
+      <button class="icon-btn" id="btn-export" title="Экспорт">📥</button>
+      <button class="icon-btn" id="btn-import" title="Импорт">📤</button>
+      <button class="logout-btn" id="btn-logout">Выйти</button>
+    </div>
+  </header>
+
+  <main id="login-screen" class="login-screen">
+    <h2 style="margin-top:0;text-align:center;">Вход</h2>
+    <div class="input-group">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" placeholder="you@company.com" />
+    </div>
+    <div class="input-group">
+      <label for="login-password">Пароль</label>
+      <input type="password" id="login-password" placeholder="Минимум 6 символов" />
+    </div>
+    <button class="btn" id="btn-login">Войти</button>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px;">
+      Создайте пользователя в Firebase Authentication → Email/Password
+    </p>
+  </main>
+
+  <main id="crm-screen" class="crm-screen hidden">
+    <div class="workspace-header">
+      <div class="search-box">
+        <input type="search" id="global-search" placeholder="Поиск проектов... (Ctrl+K)" />
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-add" id="btn-open-modal">+ Новый проект</button>
+        <button class="btn btn-secondary" id="btn-auto" style="width:auto;padding:8px 12px;">⚡ Авто</button>
+      </div>
+    </div>
+
+    <div class="kanban-grid">
+      <div class="kanban-col">
+        <h3 class="col-title" style="color:#94a3b8;">💬 Обсуждение <span id="count-Discussion">0</span></h3>
+        <div id="Discussion" class="cards-container"></div>
+      </div>
+      <div class="kanban-col">
+        <h3 class="col-title" style="color:#60a5fa;">🛠️ В работе <span id="count-In_Progress">0</span></h3>
+        <div id="In_Progress" class="cards-container"></div>
+      </div>
+      <div class="kanban-col">
+        <h3 class="col-title" style="color:#fbbf24;">🧪 Тест <span id="count-Testing">0</span></h3>
+        <div id="Testing" class="cards-container"></div>
+      </div>
+      <div class="kanban-col">
+        <h3 class="col-title" style="color:#34d399;">✅ Готово <span id="count-Done">0</span></h3>
+        <div id="Done" class="cards-container"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Модалка создания -->
+  <div id="deal-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3 style="margin-top:0;">Новый проект</h3>
+      <div class="input-group">
+        <label for="deal-title">Название</label>
+        <input type="text" id="deal-title" placeholder="Введите название" />
+      </div>
+      <div class="input-group">
+        <label for="deal-budget">Бюджет (₸)</label>
+        <input type="number" id="deal-budget" value="0" min="0" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-save-deal">Создать</button>
+        <button class="btn btn-secondary" id="btn-close-modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка корзины -->
+  <div id="trash-modal" class="modal hidden">
+    <div class="modal-content wide">
+      <h3 style="margin-top:0;">🗑️ Корзина</h3>
+      <div id="trash-list" style="max-height:400px; overflow-y:auto;">
+        <!-- Список удалённых проектов -->
+      </div>
+      <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+        <button class="btn btn-danger" id="btn-empty-trash" style="width:auto; padding:8px 16px;">Очистить корзину</button>
+        <button class="btn btn-secondary" id="btn-close-trash" style="width:auto; padding:8px 16px;">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Command Palette (Ctrl+K) -->
+  <div id="command-palette" class="command-palette hidden">
+    <input type="text" id="command-input" placeholder="Поиск или команда..." />
+    <div class="command-list" id="command-list"></div>
+  </div>
+
+  <div class="toast-container" id="toasts"></div>
+
+  <script type="module">
+    // ========== FIREBASE CONFIG — ЗАМЕНИТЕ НА СВОИ ==========
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWYCvGoEQfL_0s7Gpmgtq9gfYXYfazD2M",
+      authDomain: "our-crm-eedfc.firebaseapp.com",
+      projectId: "our-crm-eedfc",
+      storageBucket: "our-crm-eedfc.firebasestorage.app",
+      messagingSenderId: "955255949031",
+      appId: "1:955255949031:web:0af4e4150d7fe3b453c442"
+    };
+    // ========================================================
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      doc,
+      onSnapshot,
+      query,
+      orderBy,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const columns = ["Discussion", "In_Progress", "Testing", "Done"];
+    let allDeals = [];
+    let unsubscribe = null;
+    let currentUser = null;
+
+    // DOM
+    const loginScreen = document.getElementById("login-screen");
+    const crmScreen = document.getElementById("crm-screen");
+    const userInfo = document.getElementById("user-info");
+    const dealModal = document.getElementById("deal-modal");
+    const trashModal = document.getElementById("trash-modal");
+    const commandPalette = document.getElementById("command-palette");
+    const globalSearch = document.getElementById("global-search");
+    const trashCountSpan = document.getElementById("trash-count");
+
+    // ——— Theme ———
+    const savedTheme = localStorage.getItem("crm_theme") || "dark";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    document.getElementById("btn-theme").addEventListener("click", () => {
+      const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("crm_theme", next);
+    });
+
+    // ——— Toast ———
+    function toast(msg, type = "success") {
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+      el.textContent = msg;
+      document.getElementById("toasts").appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }
+
+    // ——— Auth ———
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      const isAuth = !!user;
+      loginScreen.classList.toggle("hidden", isAuth);
+      crmScreen.classList.toggle("hidden", !isAuth);
+      userInfo.classList.toggle("hidden", !isAuth);
+
+      if (isAuth) {
+        const email = user.email || "?";
+        const initials = email.slice(0, 2).toUpperCase();
+        document.getElementById("user-avatar").textContent = initials;
+        document.getElementById("user-avatar").title = email;
+        subscribeDeals();
+      } else {
+        if (unsubscribe) unsubscribe();
+        allDeals = [];
+      }
+    });
+
+    document.getElementById("btn-login").addEventListener("click", async () => {
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      if (!email || password.length < 6) {
+        toast("Email и пароль (мин. 6 символов)", "error");
+        return;
+      }
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        toast("Вход выполнен");
+      } catch (e) {
+        toast("Ошибка входа: " + e.message, "error");
+      }
+    });
+
+    document.getElementById("btn-logout").addEventListener("click", () => signOut(auth));
+
+    // ——— Real-time deals (все, включая удалённые) ———
+    function subscribeDeals() {
+      if (unsubscribe) unsubscribe();
+      const q = query(collection(db, "deals"), orderBy("createdAt", "desc"));
+      unsubscribe = onSnapshot(
+        q,
+        (snap) => {
+          allDeals = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          renderDeals();
+          updateTrashCount();
+        },
+        (err) => {
+          console.error(err);
+          toast("Ошибка загрузки: " + err.message, "error");
+        }
+      );
+    }
+
+    function updateTrashCount() {
+      const count = allDeals.filter((d) => d.deleted === true).length;
+      trashCountSpan.textContent = count;
+    }
+
+    function renderDeals(filter = "") {
+      const term = (filter || globalSearch.value || "").toLowerCase().trim();
+
+      columns.forEach((col) => {
+        const container = document.getElementById(col);
+        container.innerHTML = "";
+
+        // Активные (не удалённые) проекты в этой колонке
+        const filtered = allDeals.filter(
+          (d) =>
+            d.status === col &&
+            !d.deleted &&
+            (!term || (d.title || "").toLowerCase().includes(term))
+        );
+
+        document.getElementById("count-" + col).textContent = filtered.length;
+
+        if (allDeals.filter((d) => !d.deleted).length === 0 && !term) {
+          // Скелетоны, если нет активных
+          for (let i = 0; i < 2; i++) {
+            const sk = document.createElement("div");
+            sk.className = "skeleton";
+            container.appendChild(sk);
+          }
+          return;
+        }
+
+        filtered.forEach((deal) => {
+          const card = document.createElement("div");
+          card.className = "deal-card";
+          card.draggable = true;
+          card.dataset.id = deal.id;
+
+          const content = document.createElement("div");
+          const title = document.createElement("div");
+          title.className = "deal-title";
+          title.textContent = deal.title || "Без названия";
+
+          const budget = document.createElement("div");
+          budget.className = "deal-budget";
+          budget.textContent = Number(deal.budget || 0).toLocaleString("ru-RU") + " ₸";
+
+          const meta = document.createElement("div");
+          meta.className = "deal-meta";
+          meta.textContent = deal.createdBy ? `от ${deal.createdBy.split("@")[0]}` : "";
+
+          content.append(title, budget, meta);
+
+          const del = document.createElement("button");
+          del.className = "btn-delete";
+          del.textContent = "✕";
+          del.title = "Удалить";
+          del.onclick = (e) => {
+            e.stopPropagation();
+            softDeleteDeal(deal.id);
+          };
+
+          card.append(content, del);
+          container.appendChild(card);
+
+          card.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", deal.id);
+          });
+        });
+      });
+    }
+
+    // ——— CRUD ———
+    async function createDeal() {
+      const titleInput = document.getElementById("deal-title");
+      const budgetInput = document.getElementById("deal-budget");
+      const title = titleInput.value.trim();
+      const budget = Number(budgetInput.value) || 0;
+      if (!title) {
+        toast("Введите название", "error");
+        titleInput.focus();
+        return;
+      }
+      try {
+        await addDoc(collection(db, "deals"), {
+          title,
+          budget,
+          status: "Discussion",
+          createdAt: serverTimestamp(),
+          createdBy: currentUser?.email || "unknown",
+          ownerId: currentUser?.uid || null,
+          deleted: false, // явно не удалён
+        });
+        titleInput.value = "";
+        budgetInput.value = "0";
+        closeModal();
+        toast("Проект создан");
+      } catch (e) {
+        toast("Ошибка: " + e.message, "error");
+      }
+    }
+
+    // Мягкое удаление → в корзину
+    async function softDeleteDeal(id) {
+      try {
+        await updateDoc(doc(db, "deals", id), {
+          deleted: true,
+          deletedAt: serverTimestamp(),
+        });
+        toast("Проект перемещён в корзину");
+      } catch (e) {
+        toast("Ошибка удаления", "error");
+      }
+    }
+
+    // Восстановление из корзины
+    async function restoreDeal(id) {
+      try {
+        await updateDoc(doc(db, "deals", id), {
+          deleted: false,
+          deletedAt: null,
+        });
+        toast("Проект восстановлен");
+      } catch (e) {
+        toast("Ошибка восстановления", "error");
+      }
+    }
+
+    // Полное удаление (безвозвратно)
+    async function permanentDeleteDeal(id) {
+      if (!confirm("Удалить проект навсегда? Это действие необратимо.")) return;
+      try {
+        await deleteDoc(doc(db, "deals", id));
+        toast("Проект удалён безвозвратно");
+      } catch (e) {
+        toast("Ошибка удаления", "error");
+      }
+    }
+
+    async function updateStatus(id, status) {
+      try {
+        await updateDoc(doc(db, "deals", id), { status });
+      } catch (e) {
+        toast("Не удалось переместить", "error");
+      }
+    }
+
+    // ——— Drag & Drop ———
+    columns.forEach((colId) => {
+      const container = document.getElementById(colId);
+      container.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        container.classList.add("drag-over");
+      });
+      container.addEventListener("dragleave", () => container.classList.remove("drag-over"));
+      container.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        container.classList.remove("drag-over");
+        const id = e.dataTransfer.getData("text/plain");
+        if (id) await updateStatus(id, colId);
+      });
+    });
+
+    // ——— Modal создания ———
+    function openModal() {
+      dealModal.classList.remove("hidden");
+      document.getElementById("deal-title").focus();
+    }
+    function closeModal() {
+      dealModal.classList.add("hidden");
+    }
+    document.getElementById("btn-open-modal").addEventListener("click", openModal);
+    document.getElementById("btn-close-modal").addEventListener("click", closeModal);
+    document.getElementById("btn-save-deal").addEventListener("click", createDeal);
+    dealModal.addEventListener("click", (e) => {
+      if (e.target === dealModal) closeModal();
+    });
+
+    // ——— Trash Modal ———
+    function openTrashModal() {
+      trashModal.classList.remove("hidden");
+      renderTrashList();
+    }
+    function closeTrashModal() {
+      trashModal.classList.add("hidden");
+    }
+    document.getElementById("btn-trash").addEventListener("click", openTrashModal);
+    document.getElementById("btn-close-trash").addEventListener("click", closeTrashModal);
+    trashModal.addEventListener("click", (e) => {
+      if (e.target === trashModal) closeTrashModal();
+    });
+
+    function renderTrashList() {
+      const container = document.getElementById("trash-list");
+      const deleted = allDeals.filter((d) => d.deleted === true);
+      if (deleted.length === 0) {
+        container.innerHTML = `<p style="color:var(--muted);">Корзина пуста</p>`;
+        return;
+      }
+      container.innerHTML = deleted
+        .map(
+          (deal) => `
+            <div class="trash-item">
+              <div class="trash-item-info">
+                <strong>${deal.title || "Без названия"}</strong>
+                <span style="color:var(--muted); font-size:12px; margin-left:8px;">
+                  ${Number(deal.budget || 0).toLocaleString("ru-RU")} ₸
+                </span>
+                <span style="color:var(--muted); font-size:11px; display:block; margin-top:2px;">
+                  ${deal.createdBy ? deal.createdBy.split("@")[0] : ""}
+                  ${deal.deletedAt ? " — удалён " + new Date(deal.deletedAt.seconds * 1000).toLocaleDateString() : ""}
+                </span>
+              </div>
+              <div class="trash-item-actions">
+                <button class="restore-btn" data-id="${deal.id}">Восстановить</button>
+                <button class="permanent-btn" data-id="${deal.id}">Удалить навсегда</button>
+              </div>
+            </div>
+          `
+        )
+        .join("");
+
+      // Навешиваем обработчики
+      container.querySelectorAll(".restore-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          restoreDeal(id);
+          // после восстановления обновим список (это произойдёт через onSnapshot)
+        });
+      });
+      container.querySelectorAll(".permanent-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          permanentDeleteDeal(id);
+        });
+      });
+    }
+
+    // Очистка корзины (все навсегда)
+    document.getElementById("btn-empty-trash").addEventListener("click", async () => {
+      const deleted = allDeals.filter((d) => d.deleted === true);
+      if (deleted.length === 0) {
+        toast("Корзина уже пуста", "error");
+        return;
+      }
+      if (!confirm(`Удалить навсегда ${deleted.length} проектов? Это необратимо.`)) return;
+      try {
+        for (const deal of deleted) {
+          await deleteDoc(doc(db, "deals", deal.id));
+        }
+        toast(`Очищено: ${deleted.length}`);
+      } catch (e) {
+        toast("Ошибка очистки", "error");
+      }
+    });
+
+    // ——— Search ———
+    globalSearch.addEventListener("input", () => renderDeals());
+
+    // ——— Ctrl+K Command Palette ———
+    function openCommandPalette() {
+      commandPalette.classList.remove("hidden");
+      const input = document.getElementById("command-input");
+      input.value = "";
+      input.focus();
+      renderCommands("");
+    }
+    function closeCommandPalette() {
+      commandPalette.classList.add("hidden");
+    }
+
+    function renderCommands(term) {
+      const list = document.getElementById("command-list");
+      const commands = [
+        { label: "Новый проект", action: () => { closeCommandPalette();
+            openModal(); }, kbd: "N" },
+        { label: "Переключить тему", action: () => { document.getElementById("btn-theme").click();
+            closeCommandPalette(); }, kbd: "T" },
+        { label: "Экспорт JSON", action: () => { exportJSON();
+            closeCommandPalette(); }, kbd: "E" },
+        { label: "Авто-правило (бюджет > 500к → В работе)", action: () => { runAutomation();
+            closeCommandPalette(); }, kbd: "A" },
+        { label: "Открыть корзину", action: () => { closeCommandPalette();
+            openTrashModal(); }, kbd: "Del" },
+      ];
+
+      const deals = allDeals
+        .filter((d) => !d.deleted && (!term || d.title.toLowerCase().includes(term.toLowerCase())))
+        .slice(0, 8)
+        .map((d) => ({
+          label: d.title,
+          action: () => {
+            globalSearch.value = d.title;
+            renderDeals(d.title);
+            closeCommandPalette();
+          },
+          kbd: d.status,
+        }));
+
+      const items = term ?
+        [...deals, ...commands.filter((c) => c.label.toLowerCase().includes(term.toLowerCase()))] :
+        [...commands, ...deals];
+
+      list.innerHTML = items.length ?
+        items
+        .map(
+          (item, i) => `
+              <div class="command-item ${i === 0 ? "active" : ""}" data-idx="${i}">
+                <span>${item.label}</span>
+                <span class="kbd">${item.kbd || ""}</span>
+              </div>
+            `
+        )
+        .join("") :
+        `<div class="command-item">Ничего не найдено</div>`;
+
+      list.querySelectorAll(".command-item").forEach((el, i) => {
+        el.addEventListener("click", () => items[i]?.action());
+      });
+    }
+
+    document.getElementById("command-input").addEventListener("input", (e) => renderCommands(e.target.value));
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        openCommandPalette();
+      }
+      if (e.key === "Escape") {
+        closeCommandPalette();
+        closeModal();
+        closeTrashModal();
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (!commandPalette.contains(e.target) && !e.target.closest("#global-search")) {
+        closeCommandPalette();
+      }
+    });
+
+    // ——— Export / Import ———
+    function exportJSON() {
+      const data = JSON.stringify(allDeals, null, 2);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `crm-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast("Экспорт готов");
+    }
+    document.getElementById("btn-export").addEventListener("click", exportJSON);
+
+    document.getElementById("btn-import").addEventListener("click", () => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json";
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const items = JSON.parse(text);
+          if (!Array.isArray(items)) throw new Error("Нужен массив");
+          let count = 0;
+          for (const item of items) {
+            await addDoc(collection(db, "deals"), {
+              title: item.title || "Импорт",
+              budget: Number(item.budget) || 0,
+              status: columns.includes(item.status) ? item.status : "Discussion",
+              createdAt: serverTimestamp(),
+              createdBy: currentUser?.email || "import",
+              ownerId: currentUser?.uid,
+              deleted: false,
+            });
+            count++;
+          }
+          toast(`Импортировано: ${count}`);
+        } catch (err) {
+          toast("Ошибка импорта: " + err.message, "error");
+        }
+      };
+      input.click();
+    });
+
+    // ——— Автоматизация ———
+    async function runAutomation() {
+      let moved = 0;
+      const active = allDeals.filter((d) => !d.deleted);
+      for (const deal of active) {
+        if (deal.status === "Discussion" && Number(deal.budget) >= 500000) {
+          await updateStatus(deal.id, "In_Progress");
+          moved++;
+        }
+      }
+      toast(moved ? `Авто: перемещено ${moved}` : "Нет подходящих проектов");
+    }
+    document.getElementById("btn-auto").addEventListener("click", runAutomation);
+
+    // Enter на логине
+    document.getElementById("login-password").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("btn-login").click();
+    });
+  </script>
+</body>
+</html>
