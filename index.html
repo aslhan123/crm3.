@@ -249,8 +249,8 @@
       flex-direction: column;
       gap: 4px;
       align-items: flex-end;
+      justify-content: flex-start;
     }
-    .btn-edit,
     .btn-delete {
       background: none;
       border: none;
@@ -258,11 +258,6 @@
       font-weight: bold;
       padding: 0 2px;
       cursor: pointer;
-    }
-    .btn-edit {
-      color: #60a5fa;
-    }
-    .btn-delete {
       color: #f87171;
     }
     .modal {
@@ -528,7 +523,7 @@
   <main id="crm-screen" class="crm-screen hidden">
     <div class="workspace-header">
       <div class="search-box">
-        <input type="search" id="global-search" placeholder="Поиск проектов..." />
+        <input type="search" id="global-search" placeholder="Поиск проектов... (Ctrl+K)" />
       </div>
       <button class="btn btn-add" id="btn-open-modal">+ Новый проект</button>
     </div>
@@ -776,7 +771,6 @@
       if (isAuth) {
         updateAvatar(user.uid);
         subscribeDeals();
-        // Подписываемся на изменения профиля в Firestore
         const userRef = doc(db, "users", user.uid);
         onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
@@ -859,6 +853,7 @@
       trashCountSpan.textContent = count;
     }
 
+    // ======== ОСНОВНАЯ ФУНКЦИЯ ОТРИСОВКИ (БЕЗ КНОПКИ РЕДАКТИРОВАНИЯ) ========
     function renderDeals(filter = "") {
       const term = (filter || globalSearch.value || "").toLowerCase().trim();
 
@@ -916,18 +911,9 @@
           meta.textContent = deal.createdBy ? `от ${deal.createdBy.split("@")[0]}` : "";
           content.appendChild(meta);
 
+          // ----- БЛОК КНОПОК (только удаление) -----
           const actions = document.createElement("div");
           actions.className = "card-actions";
-
-          const editBtn = document.createElement("button");
-          editBtn.className = "btn-edit";
-          editBtn.textContent = "✏️";
-          editBtn.title = "Редактировать";
-          editBtn.onclick = (e) => {
-            e.stopPropagation();
-            openEditModal(deal.id);
-          };
-          actions.appendChild(editBtn);
 
           const delBtn = document.createElement("button");
           delBtn.className = "btn-delete";
@@ -942,7 +928,7 @@
           card.append(content, actions);
           container.appendChild(card);
 
-          // Клик по карточке – просмотр
+          // Одинарный клик – просмотр
           card.addEventListener("click", () => {
             openViewModal(deal.id);
           });
@@ -1154,17 +1140,14 @@
       const uid = currentUser.uid;
       document.getElementById("profile-email").textContent = email;
       document.getElementById("profile-uid").textContent = uid;
-      // Дата регистрации
       if (currentUser.metadata && currentUser.metadata.creationTime) {
         document.getElementById("profile-created").textContent = new Date(currentUser.metadata.creationTime).toLocaleString();
       } else {
         document.getElementById("profile-created").textContent = "—";
       }
-      // Аватар в профиле
       const avatarLarge = document.getElementById("profile-avatar-large");
       const initialsSpan = document.getElementById("profile-initials");
       const imgEl = document.getElementById("profile-avatar-img");
-      // Проверим фото из Firestore
       const userRef = doc(db, "users", uid);
       getDoc(userRef).then((docSnap) => {
         if (docSnap.exists() && docSnap.data().photoURL) {
@@ -1191,7 +1174,6 @@
       if (e.target === profileModal) closeProfileModal();
     });
 
-    // Выход из профиля
     document.getElementById("btn-profile-logout").addEventListener("click", () => {
       signOut(auth);
       closeProfileModal();
@@ -1210,16 +1192,15 @@
         return;
       }
       try {
-        const storageRef = ref(storage, `profile_photos/${currentUser.uid}.jpg`);
+        // Сохраняем с оригинальным расширением
+        const ext = file.name.split('.').pop();
+        const storageRef = ref(storage, `profile_photos/${currentUser.uid}.${ext}`);
         await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(storageRef);
-        // Сохраняем ссылку в Firestore
         const userRef = doc(db, "users", currentUser.uid);
         await setDoc(userRef, { photoURL: downloadURL }, { merge: true });
         toast("Фото загружено!");
-        // Обновляем аватар
         userAvatarBtn.innerHTML = `<img src="${downloadURL}" alt="Аватар" />`;
-        // Обновляем в модалке
         const imgEl = document.getElementById("profile-avatar-img");
         imgEl.src = downloadURL;
         imgEl.classList.remove("hidden");
@@ -1228,7 +1209,7 @@
         toast("Ошибка загрузки фото: " + err.message, "error");
         console.error(err);
       }
-      e.target.value = ""; // очистить input
+      e.target.value = "";
     });
 
     // ——— Trash Modal ———
