@@ -1121,8 +1121,8 @@
       }
     });
 
-    // Кнопка редактирования в модалке просмотра
-    document.getElementById("btn-view-edit").addEventListener("click", () => {
+    // ===== ГЛАВНОЕ ИСПРАВЛЕНИЕ: кнопка редактирования в просмотре =====
+    document.getElementById("btn-view-edit").addEventListener("click", function() {
       if (viewingDealId) {
         closeViewModal();
         openEditModal(viewingDealId);
