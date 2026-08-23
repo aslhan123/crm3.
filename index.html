@@ -19,7 +19,6 @@
       --radius: 12px;
       --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
@@ -28,7 +27,6 @@
       min-height: 100vh;
       background-image: radial-gradient(ellipse at 10% 20%, rgba(77, 140, 247, 0.06) 0%, transparent 60%);
     }
-
     /* ——— Анимации ——— */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px) scale(0.97); }
@@ -40,7 +38,6 @@
     }
     .deal-card { animation: fadeInUp 0.35s ease forwards; }
     .modal-content { animation: modalPop 0.25s ease forwards; }
-
     /* ——— Header ——— */
     header {
       background: rgba(20, 28, 47, 0.85);
@@ -114,7 +111,6 @@
       transform: scale(1.08);
       box-shadow: 0 4px 16px rgba(77, 140, 247, 0.5);
     }
-
     /* ——— Login ——— */
     .login-screen {
       max-width: 380px;
@@ -126,7 +122,6 @@
       box-shadow: var(--shadow);
       animation: fadeInUp 0.4s ease;
     }
-
     /* ——— Кнопки и поля ——— */
     .btn {
       width: 100%;
@@ -192,7 +187,6 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-
     /* ——— Workspace ——— */
     .workspace-header {
       display: flex;
@@ -221,7 +215,6 @@
     .add-btn-wrapper {
       text-align: center;
     }
-
     /* ——— Kanban ——— */
     .kanban-grid {
       display: grid;
@@ -271,7 +264,6 @@
       background: rgba(77, 140, 247, 0.08);
       border-radius: var(--radius);
     }
-
     /* ——— Карточки ——— */
     .deal-card {
       background: var(--bg);
@@ -350,12 +342,26 @@
       padding: 0 4px;
       transition: all var(--transition);
       opacity: 0.6;
+      cursor: pointer;
     }
     .btn-delete:hover {
       opacity: 1;
       transform: scale(1.2);
     }
-
+    .btn-edit {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 14px;
+      padding: 0 4px;
+      transition: all var(--transition);
+      opacity: 0.6;
+      cursor: pointer;
+    }
+    .btn-edit:hover {
+      opacity: 1;
+      transform: scale(1.2);
+    }
     /* ——— Модалки ——— */
     .modal {
       position: fixed;
@@ -411,7 +417,6 @@
       background: var(--border);
       border-radius: 4px;
     }
-
     /* ——— Комментарии ——— */
     .comment-item {
       padding: 8px 0;
@@ -423,7 +428,6 @@
       font-size: 11px;
       margin-top: 2px;
     }
-
     /* ——— Корзина ——— */
     .trash-item {
       display: flex;
@@ -462,7 +466,6 @@
       background: var(--danger);
       color: #fff;
     }
-
     /* ——— Скелетоны ——— */
     .skeleton {
       background: linear-gradient(90deg, var(--border) 25%, transparent 50%, var(--border) 75%);
@@ -475,7 +478,6 @@
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
-
     /* ——— Toast ——— */
     .toast-container {
       position: fixed;
@@ -498,7 +500,6 @@
     }
     .toast.success { border-left: 4px solid var(--accent); }
     .toast.error { border-left: 4px solid var(--danger); }
-
     /* ——— Command Palette ——— */
     .command-palette {
       position: fixed;
@@ -546,13 +547,11 @@
       font-size: 11px;
       color: var(--muted);
     }
-
     /* ——— Адаптив ——— */
     @media (max-width: 900px) {
       .kanban-grid { grid-template-columns: 1fr; }
       .search-box { max-width: 100%; }
     }
-
     .hidden { display: none !important; }
   </style>
 </head>
@@ -567,7 +566,6 @@
       <button class="logout-btn" id="btn-logout">Выйти</button>
     </div>
   </header>
-
   <main id="login-screen" class="login-screen">
     <h2 style="margin-top:0;text-align:center;font-weight:300;">Вход в CRM</h2>
     <form id="login-form" onsubmit="return false;">
@@ -585,7 +583,6 @@
       Создайте пользователя в Firebase → Authentication
     </p>
   </main>
-
   <main id="crm-screen" class="crm-screen hidden">
     <div class="workspace-header">
       <div class="search-box">
@@ -595,7 +592,6 @@
         <button class="btn btn-add" id="btn-open-modal">+ Новый проект</button>
       </div>
     </div>
-
     <div class="kanban-grid">
       <div class="kanban-col">
         <h3 class="col-title" style="color:#94a3b8;">💬 Обсуждение <span id="count-Discussion">0</span></h3>
@@ -615,7 +611,6 @@
       </div>
     </div>
   </main>
-
   <!-- Модалка создания -->
   <div id="deal-modal" class="modal hidden">
     <div class="modal-content">
@@ -638,7 +633,6 @@
       </div>
     </div>
   </div>
-
   <!-- Модалка редактирования -->
   <div id="edit-modal" class="modal hidden">
     <div class="modal-content">
@@ -661,7 +655,6 @@
       </div>
     </div>
   </div>
-
   <!-- Модалка просмотра с комментариями -->
   <div id="view-modal" class="modal hidden">
     <div class="modal-content wide">
@@ -686,7 +679,6 @@
         <label>Автор</label>
         <div class="value" id="view-author"></div>
       </div>
-
       <!-- Комментарии -->
       <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:12px;">
         <h4 style="margin:0 0 8px;">💬 Комментарии</h4>
@@ -696,14 +688,12 @@
           <button class="btn btn-secondary" id="btn-send-comment" style="width:auto; padding:8px 12px;">Отправить</button>
         </div>
       </div>
-
       <div class="modal-actions" style="margin-top:16px;">
         <button class="btn" id="btn-view-edit">✏️ Редактировать</button>
         <button class="btn btn-secondary" id="btn-close-view">Закрыть</button>
       </div>
     </div>
   </div>
-
   <!-- Модалка профиля (без фото) -->
   <div id="profile-modal" class="modal hidden">
     <div class="modal-content wide">
@@ -726,7 +716,6 @@
       </div>
     </div>
   </div>
-
   <!-- Модалка корзины -->
   <div id="trash-modal" class="modal hidden">
     <div class="modal-content wide">
@@ -738,15 +727,12 @@
       </div>
     </div>
   </div>
-
   <!-- Command Palette -->
   <div id="command-palette" class="command-palette hidden">
     <input type="text" id="command-input" placeholder="Поиск или команда..." />
     <div class="command-list" id="command-list"></div>
   </div>
-
   <div class="toast-container" id="toasts"></div>
-
   <script type="module">
     // ========== FIREBASE CONFIG ==========
     const firebaseConfig = {
@@ -757,7 +743,6 @@
       messagingSenderId: "955255949031",
       appId: "1:955255949031:web:0af4e4150d7fe3b453c442"
     };
-
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import {
       getAuth,
@@ -778,11 +763,9 @@
       serverTimestamp,
       where
     } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-
     const columns = ["Discussion", "In_Progress", "Testing", "Done"];
     let allDeals = [];
     let unsubscribe = null;
@@ -790,7 +773,6 @@
     let editingDealId = null;
     let viewingDealId = null;
     let unsubscribeComments = null;
-
     // DOM
     const loginScreen = document.getElementById("login-screen");
     const crmScreen = document.getElementById("crm-screen");
@@ -806,7 +788,6 @@
     const userAvatarBtn = document.getElementById("user-avatar-btn");
     const commentsContainer = document.getElementById("comments-container");
     const commentInput = document.getElementById("comment-input");
-
     // ——— Toast ———
     function toast(msg, type = "success") {
       const el = document.createElement("div");
@@ -815,7 +796,6 @@
       document.getElementById("toasts").appendChild(el);
       setTimeout(() => el.remove(), 3200);
     }
-
     // ——— Auth ———
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
@@ -823,7 +803,6 @@
       loginScreen.classList.toggle("hidden", isAuth);
       crmScreen.classList.toggle("hidden", !isAuth);
       userInfo.classList.toggle("hidden", !isAuth);
-
       if (isAuth) {
         const email = user.email || "?";
         const initials = email.slice(0, 2).toUpperCase();
@@ -836,7 +815,6 @@
         userAvatarBtn.textContent = "👤";
       }
     });
-
     document.getElementById("btn-login").addEventListener("click", async () => {
       const email = document.getElementById("login-email").value.trim();
       const password = document.getElementById("login-password").value;
@@ -851,9 +829,7 @@
         toast("Ошибка входа: " + e.message, "error");
       }
     });
-
     document.getElementById("btn-logout").addEventListener("click", () => signOut(auth));
-
     // ——— Подписка на проекты ———
     function subscribeDeals() {
       if (unsubscribe) unsubscribe();
@@ -867,29 +843,23 @@
         toast("Ошибка загрузки: " + err.message, "error");
       });
     }
-
     function updateTrashCount() {
       const count = allDeals.filter((d) => d.deleted === true).length;
       trashCountSpan.textContent = count;
     }
-
     // ——— Отрисовка досок ———
     function renderDeals(filter = "") {
       const term = (filter || globalSearch.value || "").toLowerCase().trim();
-
       columns.forEach((col) => {
         const container = document.getElementById(col);
         container.innerHTML = "";
-
         const filtered = allDeals.filter(
           (d) =>
             d.status === col &&
             !d.deleted &&
             (!term || (d.title || "").toLowerCase().includes(term))
         );
-
         document.getElementById("count-" + col).textContent = filtered.length;
-
         if (allDeals.filter((d) => !d.deleted).length === 0 && !term) {
           for (let i = 0; i < 2; i++) {
             const sk = document.createElement("div");
@@ -898,41 +868,45 @@
           }
           return;
         }
-
         filtered.forEach((deal) => {
           const card = document.createElement("div");
           card.className = "deal-card";
           card.draggable = true;
           card.dataset.id = deal.id;
-
           const content = document.createElement("div");
           content.style.flex = "1";
-
           const title = document.createElement("div");
           title.className = "deal-title";
           title.textContent = deal.title || "Без названия";
           content.appendChild(title);
-
           if (deal.description) {
             const desc = document.createElement("div");
             desc.className = "deal-description";
             desc.textContent = deal.description;
             content.appendChild(desc);
           }
-
           const budget = document.createElement("div");
           budget.className = "deal-budget";
           budget.textContent = Number(deal.budget || 0).toLocaleString("ru-RU") + " ₸";
           content.appendChild(budget);
-
           const meta = document.createElement("div");
           meta.className = "deal-meta";
           meta.textContent = deal.createdBy ? `от ${deal.createdBy.split("@")[0]}` : "";
           content.appendChild(meta);
-
           const actions = document.createElement("div");
           actions.className = "card-actions";
-
+          // Кнопка редактирования на карточке
+          const editBtn = document.createElement("button");
+          editBtn.className = "btn-edit";
+          editBtn.textContent = "✏️";
+          editBtn.title = "Редактировать";
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            openEditModal(deal.id);
+          };
+          actions.appendChild(editBtn);
+          // Кнопка удаления
           const delBtn = document.createElement("button");
           delBtn.className = "btn-delete";
           delBtn.textContent = "✕";
@@ -942,25 +916,20 @@
             softDeleteDeal(deal.id);
           };
           actions.appendChild(delBtn);
-
           card.append(content, actions);
           container.appendChild(card);
-
           card.addEventListener("click", () => {
             openViewModal(deal.id);
           });
-
           card.addEventListener("dblclick", () => {
             openEditModal(deal.id);
           });
-
           card.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("text/plain", deal.id);
           });
         });
       });
     }
-
     // ——— CRUD ———
     async function createDeal() {
       const titleInput = document.getElementById("deal-title");
@@ -969,7 +938,6 @@
       const title = titleInput.value.trim();
       const budget = Number(budgetInput.value) || 0;
       const description = descInput.value.trim();
-
       if (!title) {
         toast("Введите название", "error");
         titleInput.focus();
@@ -995,7 +963,6 @@
         toast("Ошибка: " + e.message, "error");
       }
     }
-
     function openEditModal(id) {
       const deal = allDeals.find(d => d.id === id);
       if (!deal) return;
@@ -1006,19 +973,16 @@
       editModal.classList.remove("hidden");
       document.getElementById("edit-title").focus();
     }
-
     async function saveEditDeal() {
       const id = editingDealId;
       if (!id) return;
       const title = document.getElementById("edit-title").value.trim();
       const description = document.getElementById("edit-description").value.trim();
       const budget = Number(document.getElementById("edit-budget").value) || 0;
-
       if (!title) {
         toast("Название не может быть пустым", "error");
         return;
       }
-
       try {
         await updateDoc(doc(db, "deals", id), {
           title,
@@ -1031,12 +995,10 @@
         toast("Ошибка сохранения: " + e.message, "error");
       }
     }
-
     function closeEditModal() {
       editModal.classList.add("hidden");
       editingDealId = null;
     }
-
     // ——— Просмотр с комментариями ———
     function openViewModal(id) {
       const deal = allDeals.find(d => d.id === id);
@@ -1048,11 +1010,9 @@
       const statusMap = { "Discussion": "Обсуждение", "In_Progress": "В работе", "Testing": "Тест", "Done": "Готово" };
       document.getElementById("view-status").textContent = statusMap[deal.status] || deal.status;
       document.getElementById("view-author").textContent = deal.createdBy || "—";
-
       subscribeComments(id);
       viewModal.classList.remove("hidden");
     }
-
     function closeViewModal() {
       viewModal.classList.add("hidden");
       viewingDealId = null;
@@ -1062,7 +1022,6 @@
       }
       commentsContainer.innerHTML = "";
     }
-
     function subscribeComments(dealId) {
       if (unsubscribeComments) unsubscribeComments();
       const q = query(
@@ -1092,7 +1051,6 @@
         toast("Ошибка комментариев", "error");
       });
     }
-
     document.getElementById("btn-send-comment").addEventListener("click", async () => {
       if (!viewingDealId) return;
       const text = commentInput.value.trim();
@@ -1113,27 +1071,23 @@
         toast("Ошибка: " + e.message, "error");
       }
     });
-
     commentInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         document.getElementById("btn-send-comment").click();
       }
     });
-
-    // ===== ГЛАВНОЕ ИСПРАВЛЕНИЕ: кнопка редактирования в просмотре =====
+    // ===== Кнопка редактирования в просмотре =====
     document.getElementById("btn-view-edit").addEventListener("click", function() {
       if (viewingDealId) {
         closeViewModal();
         openEditModal(viewingDealId);
       }
     });
-
     document.getElementById("btn-close-view").addEventListener("click", closeViewModal);
     viewModal.addEventListener("click", (e) => {
       if (e.target === viewModal) closeViewModal();
     });
-
     // ——— Мягкое удаление ———
     async function softDeleteDeal(id) {
       try {
@@ -1147,7 +1101,6 @@
         toast("Ошибка удаления", "error");
       }
     }
-
     async function restoreDeal(id) {
       try {
         await updateDoc(doc(db, "deals", id), {
@@ -1161,7 +1114,6 @@
         toast("Ошибка восстановления", "error");
       }
     }
-
     async function permanentDeleteDeal(id) {
       if (!confirm("Удалить навсегда?")) return;
       try {
@@ -1173,7 +1125,6 @@
         toast("Ошибка удаления", "error");
       }
     }
-
     async function updateStatus(id, status) {
       try {
         await updateDoc(doc(db, "deals", id), { status });
@@ -1181,7 +1132,6 @@
         toast("Не удалось переместить", "error");
       }
     }
-
     // ——— Drag & Drop ———
     columns.forEach((colId) => {
       const container = document.getElementById(colId);
@@ -1197,7 +1147,6 @@
         if (id) await updateStatus(id, colId);
       });
     });
-
     // ——— Модалки создания/редактирования ———
     function openModal() {
       dealModal.classList.remove("hidden");
@@ -1212,13 +1161,11 @@
     dealModal.addEventListener("click", (e) => {
       if (e.target === dealModal) closeModal();
     });
-
     document.getElementById("btn-close-edit").addEventListener("click", closeEditModal);
     document.getElementById("btn-save-edit").addEventListener("click", saveEditDeal);
     editModal.addEventListener("click", (e) => {
       if (e.target === editModal) closeEditModal();
     });
-
     // ——— Профиль ———
     function openProfileModal() {
       if (!currentUser) return;
@@ -1245,7 +1192,6 @@
       signOut(auth);
       closeProfileModal();
     });
-
     // ——— Корзина (главный блок) ———
     function openTrashModal() {
       trashModal.classList.remove("hidden");
@@ -1259,7 +1205,6 @@
     trashModal.addEventListener("click", (e) => {
       if (e.target === trashModal) closeTrashModal();
     });
-
     // Рендер списка корзины
     function renderTrashList() {
       const container = document.getElementById("trash-list");
@@ -1291,7 +1236,6 @@
           `
         )
         .join("");
-
       container.querySelectorAll(".restore-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           const id = btn.dataset.id;
@@ -1305,7 +1249,6 @@
         });
       });
     }
-
     // Очистка корзины
     document.getElementById("btn-empty-trash").addEventListener("click", async () => {
       const deleted = allDeals.filter((d) => d.deleted === true);
@@ -1325,10 +1268,8 @@
         toast("Ошибка очистки", "error");
       }
     });
-
     // ——— Поиск ———
     globalSearch.addEventListener("input", () => renderDeals());
-
     // ——— Command Palette ———
     function openCommandPalette() {
       commandPalette.classList.remove("hidden");
@@ -1340,7 +1281,6 @@
     function closeCommandPalette() {
       commandPalette.classList.add("hidden");
     }
-
     function renderCommands(term) {
       const list = document.getElementById("command-list");
       const commands = [
@@ -1349,7 +1289,6 @@
         { label: "Открыть профиль", action: () => { closeCommandPalette(); openProfileModal(); }, kbd: "P" },
         { label: "Открыть корзину", action: () => { closeCommandPalette(); openTrashModal(); }, kbd: "Del" },
       ];
-
       const deals = allDeals
         .filter((d) => !d.deleted && (!term || d.title.toLowerCase().includes(term.toLowerCase())))
         .slice(0, 8)
@@ -1362,11 +1301,9 @@
           },
           kbd: d.status,
         }));
-
       const items = term ?
         [...deals, ...commands.filter((c) => c.label.toLowerCase().includes(term.toLowerCase()))] :
         [...commands, ...deals];
-
       list.innerHTML = items.length ?
         items
         .map(
@@ -1379,12 +1316,10 @@
         )
         .join("") :
         `<div class="command-item">Ничего не найдено</div>`;
-
       list.querySelectorAll(".command-item").forEach((el, i) => {
         el.addEventListener("click", () => items[i]?.action());
       });
     }
-
     document.getElementById("command-input").addEventListener("input", (e) => renderCommands(e.target.value));
     document.addEventListener("keydown", (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -1405,7 +1340,6 @@
         closeCommandPalette();
       }
     });
-
     // ——— Экспорт / Импорт ———
     function exportJSON() {
       const data = JSON.stringify(allDeals, null, 2);
@@ -1419,7 +1353,6 @@
       toast("Экспорт готов");
     }
     document.getElementById("btn-export").addEventListener("click", exportJSON);
-
     document.getElementById("btn-import").addEventListener("click", () => {
       const input = document.createElement("input");
       input.type = "file";
@@ -1452,7 +1385,6 @@
       };
       input.click();
     });
-
     // Enter на логине
     document.getElementById("login-password").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
