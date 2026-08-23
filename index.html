@@ -97,7 +97,8 @@
       text-transform: uppercase;
     }
     input,
-    select {
+    select,
+    textarea {
       width: 100%;
       padding: 10px;
       background: var(--input-bg);
@@ -106,8 +107,14 @@
       color: var(--text);
       outline: none;
       font-size: 14px;
+      font-family: inherit;
     }
-    input:focus {
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    input:focus,
+    textarea:focus {
       border-color: var(--accent);
     }
     .btn {
@@ -214,14 +221,22 @@
     }
     .deal-title {
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       overflow-wrap: anywhere;
       font-size: 14px;
+    }
+    .deal-description {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 4px 0;
+      word-break: break-word;
+      line-height: 1.3;
     }
     .deal-budget {
       color: var(--accent);
       font-size: 13px;
       font-weight: 600;
+      margin-top: 2px;
     }
     .deal-meta {
       font-size: 11px;
@@ -493,6 +508,10 @@
         <input type="text" id="deal-title" placeholder="Введите название" />
       </div>
       <div class="input-group">
+        <label for="deal-description">Описание</label>
+        <textarea id="deal-description" rows="2" placeholder="Краткое описание проекта (необязательно)"></textarea>
+      </div>
+      <div class="input-group">
         <label for="deal-budget">Бюджет (₸)</label>
         <input type="number" id="deal-budget" value="0" min="0" />
       </div>
@@ -688,19 +707,33 @@
           card.dataset.id = deal.id;
 
           const content = document.createElement("div");
+          content.style.flex = "1";
+
           const title = document.createElement("div");
           title.className = "deal-title";
           title.textContent = deal.title || "Без названия";
 
+          content.appendChild(title);
+
+          // Описание (если есть)
+          if (deal.description) {
+            const desc = document.createElement("div");
+            desc.className = "deal-description";
+            // Обрезаем до 80 символов для компактности
+            const short = deal.description.length > 80 ? deal.description.slice(0, 80) + "…" : deal.description;
+            desc.textContent = short;
+            content.appendChild(desc);
+          }
+
           const budget = document.createElement("div");
           budget.className = "deal-budget";
           budget.textContent = Number(deal.budget || 0).toLocaleString("ru-RU") + " ₸";
+          content.appendChild(budget);
 
           const meta = document.createElement("div");
           meta.className = "deal-meta";
           meta.textContent = deal.createdBy ? `от ${deal.createdBy.split("@")[0]}` : "";
-
-          content.append(title, budget, meta);
+          content.appendChild(meta);
 
           const del = document.createElement("button");
           del.className = "btn-delete";
@@ -725,8 +758,11 @@
     async function createDeal() {
       const titleInput = document.getElementById("deal-title");
       const budgetInput = document.getElementById("deal-budget");
+      const descInput = document.getElementById("deal-description");
       const title = titleInput.value.trim();
       const budget = Number(budgetInput.value) || 0;
+      const description = descInput.value.trim();
+
       if (!title) {
         toast("Введите название", "error");
         titleInput.focus();
@@ -736,14 +772,16 @@
         await addDoc(collection(db, "deals"), {
           title,
           budget,
+          description,
           status: "Discussion",
           createdAt: serverTimestamp(),
           createdBy: currentUser?.email || "unknown",
           ownerId: currentUser?.uid || null,
-          deleted: false, // явно не удалён
+          deleted: false,
         });
         titleInput.value = "";
         budgetInput.value = "0";
+        descInput.value = "";
         closeModal();
         toast("Проект создан");
       } catch (e) {
@@ -854,6 +892,7 @@
             <div class="trash-item">
               <div class="trash-item-info">
                 <strong>${deal.title || "Без названия"}</strong>
+                ${deal.description ? `<div style="font-size:12px;color:var(--muted);">${deal.description.slice(0, 60)}${deal.description.length > 60 ? "…" : ""}</div>` : ""}
                 <span style="color:var(--muted); font-size:12px; margin-left:8px;">
                   ${Number(deal.budget || 0).toLocaleString("ru-RU")} ₸
                 </span>
@@ -871,12 +910,10 @@
         )
         .join("");
 
-      // Навешиваем обработчики
       container.querySelectorAll(".restore-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           const id = btn.dataset.id;
           restoreDeal(id);
-          // после восстановления обновим список (это произойдёт через onSnapshot)
         });
       });
       container.querySelectorAll(".permanent-btn").forEach((btn) => {
@@ -1018,6 +1055,7 @@
             await addDoc(collection(db, "deals"), {
               title: item.title || "Импорт",
               budget: Number(item.budget) || 0,
+              description: item.description || "",
               status: columns.includes(item.status) ? item.status : "Discussion",
               createdAt: serverTimestamp(),
               createdBy: currentUser?.email || "import",
