@@ -507,6 +507,7 @@
         <label for="deal-title">Название</label>
         <input type="text" id="deal-title" placeholder="Введите название" />
       </div>
+      <!-- === ДОБАВЛЕНО ПОЛЕ ОПИСАНИЯ === -->
       <div class="input-group">
         <label for="deal-description">Описание</label>
         <textarea id="deal-description" rows="2" placeholder="Краткое описание проекта (необязательно)"></textarea>
@@ -712,14 +713,12 @@
           const title = document.createElement("div");
           title.className = "deal-title";
           title.textContent = deal.title || "Без названия";
-
           content.appendChild(title);
 
-          // Описание (если есть)
+          // === ОТОБРАЖЕНИЕ ОПИСАНИЯ ===
           if (deal.description) {
             const desc = document.createElement("div");
             desc.className = "deal-description";
-            // Обрезаем до 80 символов для компактности
             const short = deal.description.length > 80 ? deal.description.slice(0, 80) + "…" : deal.description;
             desc.textContent = short;
             content.appendChild(desc);
@@ -772,7 +771,7 @@
         await addDoc(collection(db, "deals"), {
           title,
           budget,
-          description,
+          description,   // <-- сохраняем описание
           status: "Discussion",
           createdAt: serverTimestamp(),
           createdBy: currentUser?.email || "unknown",
@@ -1055,7 +1054,7 @@
             await addDoc(collection(db, "deals"), {
               title: item.title || "Импорт",
               budget: Number(item.budget) || 0,
-              description: item.description || "",
+              description: item.description || "",  // <-- импортируем описание
               status: columns.includes(item.status) ? item.status : "Discussion",
               createdAt: serverTimestamp(),
               createdBy: currentUser?.email || "import",
