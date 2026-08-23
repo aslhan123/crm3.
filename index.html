@@ -5,206 +5,298 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Командная CRM</title>
   <style>
+    /* ——— Тёмная тема ——— */
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --border: #334155;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --accent: #34d399;
-      --primary: #2563eb;
-      --danger: #ef4444;
+      --bg: #0a0f1e;
+      --card: #141c2f;
+      --border: #2a3a5a;
+      --text: #e8edf5;
+      --muted: #8a9bb5;
+      --accent: #38d9a9;
+      --primary: #4d8cf7;
+      --danger: #ff6b6b;
       --input-bg: #0f172a;
+      --shadow: 0 8px 32px rgba(0,0,0,0.5);
+      --radius: 12px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    [data-theme="light"] {
-      --bg: #f1f5f9;
-      --card: #ffffff;
-      --border: #cbd5e1;
-      --text: #0f172a;
-      --muted: #64748b;
-      --accent: #059669;
-      --primary: #2563eb;
-      --danger: #dc2626;
-      --input-bg: #f8fafc;
-    }
-    * { box-sizing: border-box; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: system-ui, -apple-system, Arial, sans-serif;
-      margin: 0;
-      transition: background 0.2s, color 0.2s;
+      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      min-height: 100vh;
+      background-image: radial-gradient(ellipse at 10% 20%, rgba(77, 140, 247, 0.06) 0%, transparent 60%);
     }
+
+    /* ——— Анимации ——— */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.92) translateY(-10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .deal-card { animation: fadeInUp 0.35s ease forwards; }
+    .modal-content { animation: modalPop 0.25s ease forwards; }
+
+    /* ——— Header ——— */
     header {
-      background: var(--card);
-      padding: 12px 16px;
+      background: rgba(20, 28, 47, 0.85);
+      backdrop-filter: blur(12px);
+      padding: 12px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--border);
       gap: 12px;
       flex-wrap: wrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
-    h1 { color: var(--accent); margin: 0; font-size: 17px; }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
     .header-actions {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    button { cursor: pointer; font-family: inherit; }
-    .theme-btn, .icon-btn {
+    .icon-btn, .logout-btn {
       background: transparent;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 6px 10px;
-      border-radius: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius);
       font-size: 13px;
+      transition: all var(--transition);
+      backdrop-filter: blur(4px);
+    }
+    .icon-btn:hover {
+      background: rgba(77, 140, 247, 0.15);
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(77, 140, 247, 0.2);
     }
     .logout-btn {
       background: var(--danger);
       border: none;
       color: white;
       font-weight: 600;
-      padding: 6px 10px;
-      border-radius: 6px;
     }
+    .logout-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition);
+      box-shadow: 0 2px 8px rgba(77, 140, 247, 0.3);
+    }
+    .user-avatar:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 16px rgba(77, 140, 247, 0.5);
+    }
+
+    /* ——— Login ——— */
     .login-screen {
-      max-width: 360px;
+      max-width: 380px;
       margin: 80px auto;
-      padding: 24px;
+      padding: 32px;
       background: var(--card);
-      border-radius: 10px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      animation: fadeInUp 0.4s ease;
     }
+
+    /* ——— Кнопки и поля ——— */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      border-radius: var(--radius);
+      color: white;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all var(--transition);
+      box-shadow: 0 4px 16px rgba(77, 140, 247, 0.25);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(77, 140, 247, 0.4);
+    }
+    .btn-add {
+      width: auto;
+      padding: 8px 18px;
+      background: linear-gradient(135deg, var(--primary), #6c5ce7);
+    }
+    .btn-secondary {
+      background: #2d3b5a;
+      box-shadow: none;
+    }
+    .btn-secondary:hover {
+      background: #3a4a6e;
+      transform: translateY(-2px);
+    }
+    .btn-danger {
+      background: var(--danger);
+      box-shadow: 0 4px 16px rgba(255, 107, 107, 0.25);
+    }
+    .btn-danger:hover {
+      background: #ff5252;
+    }
+    input, textarea {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 10px 14px;
+      transition: all var(--transition);
+      width: 100%;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(77, 140, 247, 0.2);
+      outline: none;
+    }
+    textarea { resize: vertical; min-height: 60px; }
     .input-group { margin-bottom: 14px; }
     label {
       display: block;
       font-size: 11px;
       color: var(--muted);
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      outline: none;
-      font-size: 14px;
-      font-family: inherit;
-    }
-    textarea { resize: vertical; min-height: 60px; }
-    input:focus, textarea:focus { border-color: var(--accent); }
-    .btn {
-      width: 100%;
-      padding: 11px;
-      background: #059669;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .btn:hover { opacity: 0.92; }
-    .btn-add { width: auto; padding: 8px 14px; background: var(--primary); }
-    .btn-secondary { background: #475569; }
-    .btn-danger { background: var(--danger); }
-    .crm-screen { padding: 16px; max-width: 1280px; margin: 0 auto; }
-    .workspace-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    .search-box {
-      flex: 1;
-      min-width: 180px;
-      max-width: 320px;
-      position: relative;
-    }
-    .search-box input { padding-left: 34px; }
-    .search-box::before {
-      content: "🔍";
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 14px;
-      opacity: 0.7;
-    }
+
+    /* ——— Kanban ——— */
     .kanban-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+      gap: 16px;
     }
     .kanban-col {
       background: var(--card);
-      padding: 12px;
-      border-radius: 8px;
+      padding: 14px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       min-height: 420px;
+      box-shadow: var(--shadow);
+      transition: all var(--transition);
+    }
+    .kanban-col:hover {
+      border-color: rgba(77, 140, 247, 0.3);
     }
     .col-title {
-      font-size: 13px;
-      margin: 0 0 12px;
-      padding-bottom: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 14px;
+      padding-bottom: 8px;
       border-bottom: 2px solid var(--border);
       display: flex;
       justify-content: space-between;
+      align-items: center;
+    }
+    .col-title span {
+      background: rgba(77, 140, 247, 0.15);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--muted);
     }
     .cards-container {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       min-height: 80px;
+      transition: background 0.2s;
     }
     .cards-container.drag-over {
-      background: rgba(52, 211, 153, 0.12);
-      border-radius: 6px;
+      background: rgba(77, 140, 247, 0.08);
+      border-radius: var(--radius);
     }
+
+    /* ——— Карточки ——— */
     .deal-card {
       background: var(--bg);
-      padding: 11px;
-      border-radius: 6px;
+      padding: 14px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
       cursor: pointer;
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      transition: transform 0.15s;
+      gap: 10px;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .deal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .deal-card:hover {
+      transform: translateY(-2px) scale(1.01);
+      border-color: rgba(77, 140, 247, 0.4);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .deal-card:hover::before {
+      opacity: 1;
     }
     .deal-card:active { cursor: grabbing; }
     .deal-title {
       font-weight: 600;
-      margin-bottom: 2px;
-      overflow-wrap: anywhere;
       font-size: 14px;
+      margin-bottom: 4px;
     }
     .deal-description {
       font-size: 12px;
       color: var(--muted);
       margin: 4px 0;
-      word-break: break-word;
-      line-height: 1.3;
-      max-height: 3.6em;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
+      max-height: 2.8em;
     }
     .deal-budget {
       color: var(--accent);
-      font-size: 13px;
       font-weight: 600;
+      font-size: 13px;
       margin-top: 2px;
     }
     .deal-meta {
@@ -222,167 +314,51 @@
     .btn-delete {
       background: none;
       border: none;
+      color: var(--danger);
       font-size: 16px;
       font-weight: bold;
-      padding: 0 2px;
-      cursor: pointer;
-      color: #f87171;
+      padding: 0 4px;
+      transition: all var(--transition);
+      opacity: 0.6;
     }
+    .btn-delete:hover {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+
+    /* ——— Модалки ——— */
     .modal {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 16px;
       z-index: 100;
+      animation: fadeInUp 0.2s ease;
     }
     .modal-content {
       background: var(--card);
-      padding: 20px;
-      border-radius: 10px;
+      padding: 28px;
+      border-radius: var(--radius);
       width: 100%;
-      max-width: 340px;
+      max-width: 400px;
       border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
     }
-    .modal-content.wide { max-width: 600px; }
+    .modal-content.wide {
+      max-width: 550px;
+    }
     .modal-actions {
       display: flex;
-      gap: 10px;
-      margin-top: 18px;
+      gap: 12px;
+      margin-top: 20px;
     }
-    .modal-actions .btn { flex: 1; }
-    .hidden { display: none !important; }
-    .toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 200;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .view-field {
+      margin-bottom: 12px;
     }
-    .toast {
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 12px 16px;
-      border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-      font-size: 14px;
-      animation: slideIn 0.25s ease;
-      max-width: 300px;
-    }
-    .toast.success { border-left: 4px solid var(--accent); }
-    .toast.error { border-left: 4px solid var(--danger); }
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    .skeleton {
-      background: linear-gradient(90deg, var(--border) 25%, transparent 50%, var(--border) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.2s infinite;
-      border-radius: 6px;
-      height: 70px;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    .user-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      flex-shrink: 0;
-      overflow: hidden;
-    }
-    .user-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .command-palette {
-      position: fixed;
-      top: 15%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 480px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      z-index: 150;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-      overflow: hidden;
-    }
-    .command-palette input {
-      border: none;
-      border-bottom: 1px solid var(--border);
-      border-radius: 0;
-      padding: 14px 16px;
-      font-size: 16px;
-    }
-    .command-list {
-      max-height: 280px;
-      overflow-y: auto;
-    }
-    .command-item {
-      padding: 12px 16px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-    }
-    .command-item:hover, .command-item.active {
-      background: rgba(52, 211, 153, 0.12);
-    }
-    .kbd {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-    .trash-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .trash-item-info { flex: 1; }
-    .trash-item-actions {
-      display: flex;
-      gap: 6px;
-    }
-    .trash-item-actions button {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-    .trash-item-actions .restore-btn {
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-    .trash-item-actions .permanent-btn {
-      color: var(--danger);
-      border-color: var(--danger);
-    }
-    .view-field { margin-bottom: 12px; }
     .view-field label {
       display: block;
       font-size: 11px;
@@ -392,42 +368,13 @@
     }
     .view-field .value {
       font-size: 14px;
-      word-break: break-all;
-    }
-    .view-description-scroll {
-      max-height: 150px;
-      overflow-y: auto;
-      white-space: pre-wrap;
       word-break: break-word;
-      background: var(--input-bg);
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      font-size: 14px;
-      line-height: 1.5;
+      white-space: pre-wrap;
     }
-    .profile-avatar-large {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      font-weight: 700;
-      color: white;
-      margin: 0 auto 16px;
-      overflow: hidden;
-      border: 2px solid var(--border);
-    }
-    .profile-avatar-large img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+
+    /* ——— Комментарии ——— */
     .comment-item {
-      padding: 6px 0;
+      padding: 8px 0;
       border-bottom: 1px solid var(--border);
       font-size: 13px;
     }
@@ -436,6 +383,59 @@
       font-size: 11px;
       margin-top: 2px;
     }
+
+    /* ——— Корзина ——— */
+    .trash-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .trash-item-info { flex: 1; }
+    .trash-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .trash-item-actions button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: all var(--transition);
+    }
+    .trash-item-actions .restore-btn {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .trash-item-actions .restore-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    .trash-item-actions .permanent-btn {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .trash-item-actions .permanent-btn:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* ——— Скелетоны ——— */
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, transparent 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: var(--radius);
+      height: 72px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ——— Адаптив ——— */
     @media (max-width: 900px) {
       .kanban-grid { grid-template-columns: 1fr; }
       .workspace-header { flex-direction: column; align-items: stretch; }
@@ -445,11 +445,10 @@
 </head>
 <body>
   <header>
-    <h1>🚀 Наша командная CRM</h1>
+    <h1>🚀 Командная CRM</h1>
     <div id="user-info" class="header-actions hidden">
-      <button class="user-avatar" id="user-avatar-btn" title="Профиль">?</button>
+      <button class="user-avatar" id="user-avatar-btn" title="Профиль">👤</button>
       <button class="icon-btn" id="btn-trash" title="Корзина">🗑️ <span id="trash-count">0</span></button>
-      <button class="theme-btn" id="btn-theme" title="Тема">🌓</button>
       <button class="icon-btn" id="btn-export" title="Экспорт">📥</button>
       <button class="icon-btn" id="btn-import" title="Импорт">📤</button>
       <button class="logout-btn" id="btn-logout">Выйти</button>
@@ -457,7 +456,7 @@
   </header>
 
   <main id="login-screen" class="login-screen">
-    <h2 style="margin-top:0;text-align:center;">Вход</h2>
+    <h2 style="margin-top:0;text-align:center;font-weight:300;">Вход в CRM</h2>
     <form id="login-form" onsubmit="return false;">
       <div class="input-group">
         <label for="login-email">Email</label>
@@ -469,8 +468,8 @@
       </div>
       <button class="btn" id="btn-login" type="button">Войти</button>
     </form>
-    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:12px;">
-      Создайте пользователя в Firebase Authentication → Email/Password
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:16px;">
+      Создайте пользователя в Firebase → Authentication
     </p>
   </main>
 
@@ -512,7 +511,7 @@
       </div>
       <div class="input-group">
         <label for="deal-description">Описание</label>
-        <textarea id="deal-description" rows="2" placeholder="Краткое описание проекта (необязательно)"></textarea>
+        <textarea id="deal-description" rows="2" placeholder="Краткое описание (необязательно)"></textarea>
       </div>
       <div class="input-group">
         <label for="deal-budget">Бюджет (₸)</label>
@@ -528,14 +527,14 @@
   <!-- Модалка редактирования -->
   <div id="edit-modal" class="modal hidden">
     <div class="modal-content">
-      <h3 style="margin-top:0;">✏️ Редактировать проект</h3>
+      <h3 style="margin-top:0;">✏️ Редактировать</h3>
       <div class="input-group">
         <label for="edit-title">Название</label>
         <input type="text" id="edit-title" placeholder="Введите название" />
       </div>
       <div class="input-group">
         <label for="edit-description">Описание</label>
-        <textarea id="edit-description" rows="2" placeholder="Краткое описание проекта"></textarea>
+        <textarea id="edit-description" rows="2" placeholder="Краткое описание"></textarea>
       </div>
       <div class="input-group">
         <label for="edit-budget">Бюджет (₸)</label>
@@ -550,7 +549,7 @@
 
   <!-- Модалка просмотра с комментариями -->
   <div id="view-modal" class="modal hidden">
-    <div class="modal-content wide" style="max-width:500px;">
+    <div class="modal-content wide">
       <h3 style="margin-top:0;" id="view-title">📄 Проект</h3>
       <div class="view-field">
         <label>Название</label>
@@ -558,7 +557,7 @@
       </div>
       <div class="view-field">
         <label>Описание</label>
-        <div class="view-description-scroll" id="view-description"></div>
+        <div class="value" id="view-description" style="white-space:pre-wrap; word-break:break-word;"></div>
       </div>
       <div class="view-field">
         <label>Бюджет</label>
@@ -590,18 +589,10 @@
     </div>
   </div>
 
-  <!-- Модалка профиля -->
+  <!-- Модалка профиля (без фото) -->
   <div id="profile-modal" class="modal hidden">
     <div class="modal-content wide">
       <h3 style="margin-top:0;">👤 Профиль</h3>
-      <div class="profile-avatar-large" id="profile-avatar-large">
-        <span id="profile-initials">?</span>
-        <img id="profile-avatar-img" class="hidden" alt="Фото профиля" />
-      </div>
-      <div style="text-align:center; margin-bottom:16px;">
-        <button class="btn btn-secondary" id="btn-upload-photo" style="width:auto; padding:8px 16px;">📸 Загрузить фото</button>
-        <input type="file" id="photo-input" accept="image/*" style="display:none;" />
-      </div>
       <div class="view-field">
         <label>Email</label>
         <div class="value" id="profile-email"></div>
@@ -627,7 +618,7 @@
       <h3 style="margin-top:0;">🗑️ Корзина</h3>
       <div id="trash-list" style="max-height:400px; overflow-y:auto;"></div>
       <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
-        <button class="btn btn-danger" id="btn-empty-trash" style="width:auto; padding:8px 16px;">Очистить корзину</button>
+        <button class="btn btn-danger" id="btn-empty-trash" style="width:auto; padding:8px 16px;">Очистить</button>
         <button class="btn btn-secondary" id="btn-close-trash" style="width:auto; padding:8px 16px;">Закрыть</button>
       </div>
     </div>
@@ -642,7 +633,7 @@
   <div class="toast-container" id="toasts"></div>
 
   <script type="module">
-    // ========== FIREBASE CONFIG — ЗАМЕНИТЕ НА СВОИ ==========
+    // ========== FIREBASE CONFIG ==========
     const firebaseConfig = {
       apiKey: "AIzaSyDWYCvGoEQfL_0s7Gpmgtq9gfYXYfazD2M",
       authDomain: "our-crm-eedfc.firebaseapp.com",
@@ -651,7 +642,6 @@
       messagingSenderId: "955255949031",
       appId: "1:955255949031:web:0af4e4150d7fe3b453c442"
     };
-    // ========================================================
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import {
@@ -671,21 +661,12 @@
       query,
       orderBy,
       serverTimestamp,
-      getDoc,
-      setDoc,
       where
     } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-    import {
-      getStorage,
-      ref,
-      uploadBytes,
-      getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     const columns = ["Discussion", "In_Progress", "Testing", "Done"];
     let allDeals = [];
@@ -711,16 +692,6 @@
     const commentsContainer = document.getElementById("comments-container");
     const commentInput = document.getElementById("comment-input");
 
-    // ——— Theme ———
-    const savedTheme = localStorage.getItem("crm_theme") || "dark";
-    document.documentElement.setAttribute("data-theme", savedTheme);
-    document.getElementById("btn-theme").addEventListener("click", () => {
-      const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("crm_theme", next);
-    });
-
-    // ——— Toast ———
     function toast(msg, type = "success") {
       const el = document.createElement("div");
       el.className = `toast ${type}`;
@@ -729,7 +700,7 @@
       setTimeout(() => el.remove(), 3200);
     }
 
-    // ——— Auth ———
+    // Auth
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
       const isAuth = !!user;
@@ -738,30 +709,15 @@
       userInfo.classList.toggle("hidden", !isAuth);
 
       if (isAuth) {
-        updateAvatar(user.uid);
+        const email = user.email || "?";
+        const initials = email.slice(0, 2).toUpperCase();
+        userAvatarBtn.textContent = initials;
         subscribeDeals();
-        const userRef = doc(db, "users", user.uid);
-        onSnapshot(userRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.photoURL) {
-              userAvatarBtn.innerHTML = `<img src="${data.photoURL}" alt="Аватар" />`;
-            } else {
-              const email = user.email || "?";
-              const initials = email.slice(0, 2).toUpperCase();
-              userAvatarBtn.textContent = initials;
-            }
-          } else {
-            const email = user.email || "?";
-            const initials = email.slice(0, 2).toUpperCase();
-            userAvatarBtn.textContent = initials;
-          }
-        });
       } else {
         if (unsubscribe) unsubscribe();
         if (unsubscribeComments) unsubscribeComments();
         allDeals = [];
-        userAvatarBtn.textContent = "?";
+        userAvatarBtn.textContent = "👤";
       }
     });
 
@@ -782,40 +738,18 @@
 
     document.getElementById("btn-logout").addEventListener("click", () => signOut(auth));
 
-    // ——— Обновление аватара ———
-    async function updateAvatar(uid) {
-      try {
-        const userRef = doc(db, "users", uid);
-        const docSnap = await getDoc(userRef);
-        if (docSnap.exists() && docSnap.data().photoURL) {
-          const url = docSnap.data().photoURL;
-          userAvatarBtn.innerHTML = `<img src="${url}" alt="Аватар" />`;
-        } else {
-          const email = currentUser?.email || "?";
-          const initials = email.slice(0, 2).toUpperCase();
-          userAvatarBtn.textContent = initials;
-        }
-      } catch (e) {
-        console.warn("Не удалось загрузить аватар:", e.message);
-      }
-    }
-
-    // ——— Real-time deals ———
+    // Подписка на проекты
     function subscribeDeals() {
       if (unsubscribe) unsubscribe();
       const q = query(collection(db, "deals"), orderBy("createdAt", "desc"));
-      unsubscribe = onSnapshot(
-        q,
-        (snap) => {
-          allDeals = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          renderDeals();
-          updateTrashCount();
-        },
-        (err) => {
-          console.error(err);
-          toast("Ошибка загрузки проектов: " + err.message, "error");
-        }
-      );
+      unsubscribe = onSnapshot(q, (snap) => {
+        allDeals = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderDeals();
+        updateTrashCount();
+      }, (err) => {
+        console.error(err);
+        toast("Ошибка загрузки: " + err.message, "error");
+      });
     }
 
     function updateTrashCount() {
@@ -823,7 +757,6 @@
       trashCountSpan.textContent = count;
     }
 
-    // ======== ОСНОВНАЯ ФУНКЦИЯ ОТРИСОВКИ ========
     function renderDeals(filter = "") {
       const term = (filter || globalSearch.value || "").toLowerCase().trim();
 
@@ -946,7 +879,6 @@
       }
     }
 
-    // Редактирование
     function openEditModal(id) {
       const deal = allDeals.find(d => d.id === id);
       if (!deal) return;
@@ -988,7 +920,7 @@
       editingDealId = null;
     }
 
-    // ===== ПРОСМОТР С КОММЕНТАРИЯМИ =====
+    // ——— Просмотр с комментариями ———
     function openViewModal(id) {
       const deal = allDeals.find(d => d.id === id);
       if (!deal) return;
@@ -1014,7 +946,6 @@
       commentsContainer.innerHTML = "";
     }
 
-    // Подписка на комментарии
     function subscribeComments(dealId) {
       if (unsubscribeComments) unsubscribeComments();
       const q = query(
@@ -1041,11 +972,10 @@
         commentsContainer.scrollTop = commentsContainer.scrollHeight;
       }, (err) => {
         console.error(err);
-        toast("Ошибка загрузки комментариев", "error");
+        toast("Ошибка комментариев", "error");
       });
     }
 
-    // Отправка комментария
     document.getElementById("btn-send-comment").addEventListener("click", async () => {
       if (!viewingDealId) return;
       const text = commentInput.value.trim();
@@ -1074,12 +1004,10 @@
       }
     });
 
-    // ===== ИСПРАВЛЕННАЯ КНОПКА РЕДАКТИРОВАНИЯ =====
     document.getElementById("btn-view-edit").addEventListener("click", () => {
-      const id = viewingDealId; // сохраняем перед закрытием
-      if (id) {
+      if (viewingDealId) {
         closeViewModal();
-        openEditModal(id);
+        openEditModal(viewingDealId);
       }
     });
 
@@ -1088,7 +1016,7 @@
       if (e.target === viewModal) closeViewModal();
     });
 
-    // Мягкое удаление
+    // ——— Мягкое удаление ———
     async function softDeleteDeal(id) {
       try {
         await updateDoc(doc(db, "deals", id), {
@@ -1114,10 +1042,10 @@
     }
 
     async function permanentDeleteDeal(id) {
-      if (!confirm("Удалить проект навсегда? Это действие необратимо.")) return;
+      if (!confirm("Удалить навсегда?")) return;
       try {
         await deleteDoc(doc(db, "deals", id));
-        toast("Проект удалён безвозвратно");
+        toast("Удалён безвозвратно");
       } catch (e) {
         toast("Ошибка удаления", "error");
       }
@@ -1147,7 +1075,7 @@
       });
     });
 
-    // ——— Modal создания ———
+    // ——— Модалки ———
     function openModal() {
       dealModal.classList.remove("hidden");
       document.getElementById("deal-title").focus();
@@ -1162,14 +1090,13 @@
       if (e.target === dealModal) closeModal();
     });
 
-    // ——— Modal редактирования ———
     document.getElementById("btn-close-edit").addEventListener("click", closeEditModal);
     document.getElementById("btn-save-edit").addEventListener("click", saveEditDeal);
     editModal.addEventListener("click", (e) => {
       if (e.target === editModal) closeEditModal();
     });
 
-    // ——— Profile Modal ———
+    // ——— Профиль ———
     function openProfileModal() {
       if (!currentUser) return;
       const email = currentUser.email || "—";
@@ -1181,72 +1108,22 @@
       } else {
         document.getElementById("profile-created").textContent = "—";
       }
-      const initialsSpan = document.getElementById("profile-initials");
-      const imgEl = document.getElementById("profile-avatar-img");
-      const userRef = doc(db, "users", uid);
-      getDoc(userRef).then((docSnap) => {
-        if (docSnap.exists() && docSnap.data().photoURL) {
-          imgEl.src = docSnap.data().photoURL;
-          imgEl.classList.remove("hidden");
-          initialsSpan.classList.add("hidden");
-        } else {
-          imgEl.classList.add("hidden");
-          initialsSpan.classList.remove("hidden");
-          const init = email.slice(0, 2).toUpperCase();
-          initialsSpan.textContent = init;
-        }
-      }).catch(() => {});
       profileModal.classList.remove("hidden");
     }
-
     function closeProfileModal() {
       profileModal.classList.add("hidden");
     }
-
     userAvatarBtn.addEventListener("click", openProfileModal);
     document.getElementById("btn-close-profile").addEventListener("click", closeProfileModal);
     profileModal.addEventListener("click", (e) => {
       if (e.target === profileModal) closeProfileModal();
     });
-
     document.getElementById("btn-profile-logout").addEventListener("click", () => {
       signOut(auth);
       closeProfileModal();
     });
 
-    // Загрузка фото
-    document.getElementById("btn-upload-photo").addEventListener("click", () => {
-      document.getElementById("photo-input").click();
-    });
-
-    document.getElementById("photo-input").addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      if (!currentUser) {
-        toast("Пользователь не авторизован", "error");
-        return;
-      }
-      try {
-        const ext = file.name.split('.').pop();
-        const storageRef = ref(storage, `profile_photos/${currentUser.uid}.${ext}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        const userRef = doc(db, "users", currentUser.uid);
-        await setDoc(userRef, { photoURL: downloadURL }, { merge: true });
-        toast("Фото загружено!");
-        userAvatarBtn.innerHTML = `<img src="${downloadURL}" alt="Аватар" />`;
-        const imgEl = document.getElementById("profile-avatar-img");
-        imgEl.src = downloadURL;
-        imgEl.classList.remove("hidden");
-        document.getElementById("profile-initials").classList.add("hidden");
-      } catch (err) {
-        toast("Ошибка загрузки фото: " + err.message, "error");
-        console.error(err);
-      }
-      e.target.value = "";
-    });
-
-    // ——— Trash Modal ———
+    // ——— Корзина ———
     function openTrashModal() {
       trashModal.classList.remove("hidden");
       renderTrashList();
@@ -1311,7 +1188,7 @@
         toast("Корзина уже пуста", "error");
         return;
       }
-      if (!confirm(`Удалить навсегда ${deleted.length} проектов? Это необратимо.`)) return;
+      if (!confirm(`Удалить навсегда ${deleted.length} проектов?`)) return;
       try {
         for (const deal of deleted) {
           await deleteDoc(doc(db, "deals", deal.id));
@@ -1325,7 +1202,7 @@
     // ——— Search ———
     globalSearch.addEventListener("input", () => renderDeals());
 
-    // ——— Ctrl+K Command Palette ———
+    // ——— Command Palette ———
     function openCommandPalette() {
       commandPalette.classList.remove("hidden");
       const input = document.getElementById("command-input");
@@ -1341,7 +1218,6 @@
       const list = document.getElementById("command-list");
       const commands = [
         { label: "Новый проект", action: () => { closeCommandPalette(); openModal(); }, kbd: "N" },
-        { label: "Переключить тему", action: () => { document.getElementById("btn-theme").click(); closeCommandPalette(); }, kbd: "T" },
         { label: "Экспорт JSON", action: () => { exportJSON(); closeCommandPalette(); }, kbd: "E" },
         { label: "Открыть профиль", action: () => { closeCommandPalette(); openProfileModal(); }, kbd: "P" },
         { label: "Открыть корзину", action: () => { closeCommandPalette(); openTrashModal(); }, kbd: "Del" },
