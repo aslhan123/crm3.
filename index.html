@@ -473,6 +473,17 @@
       object-fit: cover;
     }
 
+    .comment-item {
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .comment-meta {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
     @media (max-width: 900px) {
       .kanban-grid {
         grid-template-columns: 1fr;
@@ -594,9 +605,9 @@
     </div>
   </div>
 
-  <!-- Модалка просмотра карточки -->
+  <!-- Модалка просмотра карточки (с комментариями) -->
   <div id="view-modal" class="modal hidden">
-    <div class="modal-content wide">
+    <div class="modal-content wide" style="max-width:500px;">
       <h3 style="margin-top:0;" id="view-title">📄 Проект</h3>
       <div class="view-field">
         <label>Название</label>
@@ -618,7 +629,20 @@
         <label>Автор</label>
         <div class="value" id="view-author"></div>
       </div>
-      <div class="modal-actions">
+
+      <!-- Блок комментариев -->
+      <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:12px;">
+        <h4 style="margin:0 0 8px;">💬 Комментарии</h4>
+        <div id="comments-container" style="max-height:150px; overflow-y:auto; margin-bottom:8px;">
+          <!-- Сюда подгружаются комментарии -->
+        </div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="comment-input" placeholder="Написать комментарий..." style="flex:1;" />
+          <button class="btn btn-secondary" id="btn-send-comment" style="width:auto; padding:8px 12px;">Отправить</button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:16px;">
         <button class="btn" id="btn-view-edit">✏️ Редактировать</button>
         <button class="btn btn-secondary" id="btn-close-view">Закрыть</button>
       </div>
@@ -707,7 +731,8 @@
       orderBy,
       serverTimestamp,
       getDoc,
-      setDoc
+      setDoc,
+      where
     } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
     import {
       getStorage,
@@ -727,6 +752,7 @@
     let currentUser = null;
     let editingDealId = null;
     let viewingDealId = null;
+    let unsubscribeComments = null; // для отписки от комментариев
 
     // DOM
     const loginScreen = document.getElementById("login-screen");
@@ -741,6 +767,8 @@
     const globalSearch = document.getElementById("global-search");
     const trashCountSpan = document.getElementById("trash-count");
     const userAvatarBtn = document.getElementById("user-avatar-btn");
+    const commentsContainer = document.getElementById("comments-container");
+    const commentInput = document.getElementById("comment-input");
 
     // ——— Theme ———
     const savedTheme = localStorage.getItem("crm_theme") || "dark";
@@ -790,6 +818,7 @@
         });
       } else {
         if (unsubscribe) unsubscribe();
+        if (unsubscribeComments) unsubscribeComments();
         allDeals = [];
         userAvatarBtn.textContent = "?";
       }
@@ -1022,7 +1051,7 @@
       editingDealId = null;
     }
 
-    // Просмотр карточки
+    // ===== ПРОСМОТР КАРТОЧКИ С КОММЕНТАРИЯМИ =====
     function openViewModal(id) {
       const deal = allDeals.find(d => d.id === id);
       if (!deal) return;
@@ -1033,20 +1062,93 @@
       const statusMap = { "Discussion": "Обсуждение", "In_Progress": "В работе", "Testing": "Тест", "Done": "Готово" };
       document.getElementById("view-status").textContent = statusMap[deal.status] || deal.status;
       document.getElementById("view-author").textContent = deal.createdBy || "—";
+
+      // Подписываемся на комментарии к этому проекту
+      subscribeComments(id);
+
       viewModal.classList.remove("hidden");
     }
 
     function closeViewModal() {
       viewModal.classList.add("hidden");
       viewingDealId = null;
+      if (unsubscribeComments) {
+        unsubscribeComments();
+        unsubscribeComments = null;
+      }
+      commentsContainer.innerHTML = "";
     }
 
+    // Подписка на комментарии
+    function subscribeComments(dealId) {
+      if (unsubscribeComments) unsubscribeComments();
+      const q = query(
+        collection(db, "comments"),
+        where("dealId", "==", dealId),
+        orderBy("createdAt", "asc")
+      );
+      unsubscribeComments = onSnapshot(q, (snap) => {
+        commentsContainer.innerHTML = "";
+        if (snap.empty) {
+          commentsContainer.innerHTML = '<div style="color:var(--muted); font-size:13px;">Нет комментариев</div>';
+          return;
+        }
+        snap.forEach((doc) => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "comment-item";
+          div.innerHTML = `
+            <div>${data.text}</div>
+            <div class="comment-meta">${data.createdBy || "unknown"} — ${data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString() : ""}</div>
+          `;
+          commentsContainer.appendChild(div);
+        });
+        // Прокручиваем вниз
+        commentsContainer.scrollTop = commentsContainer.scrollHeight;
+      }, (err) => {
+        console.error(err);
+        toast("Ошибка загрузки комментариев", "error");
+      });
+    }
+
+    // Отправка комментария
+    document.getElementById("btn-send-comment").addEventListener("click", async () => {
+      if (!viewingDealId) return;
+      const text = commentInput.value.trim();
+      if (!text) {
+        toast("Напишите текст", "error");
+        return;
+      }
+      try {
+        await addDoc(collection(db, "comments"), {
+          dealId: viewingDealId,
+          text,
+          createdAt: serverTimestamp(),
+          createdBy: currentUser?.email || "anonymous"
+        });
+        commentInput.value = "";
+        toast("Комментарий добавлен");
+      } catch (e) {
+        toast("Ошибка: " + e.message, "error");
+      }
+    });
+
+    // Отправка по Enter
+    commentInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("btn-send-comment").click();
+      }
+    });
+
+    // Кнопка "Редактировать" в просмотре
     document.getElementById("btn-view-edit").addEventListener("click", () => {
       if (viewingDealId) {
         closeViewModal();
         openEditModal(viewingDealId);
       }
     });
+
     document.getElementById("btn-close-view").addEventListener("click", closeViewModal);
     viewModal.addEventListener("click", (e) => {
       if (e.target === viewModal) closeViewModal();
@@ -1192,7 +1294,6 @@
         return;
       }
       try {
-        // Сохраняем с оригинальным расширением
         const ext = file.name.split('.').pop();
         const storageRef = ref(storage, `profile_photos/${currentUser.uid}.${ext}`);
         await uploadBytes(storageRef, file);
