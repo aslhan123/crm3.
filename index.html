@@ -146,8 +146,10 @@
     }
     .btn-add {
       width: auto;
-      padding: 8px 18px;
+      padding: 8px 24px;
       background: linear-gradient(135deg, var(--primary), #6c5ce7);
+      margin: 0 auto;
+      display: inline-block;
     }
     .btn-secondary {
       background: #2d3b5a;
@@ -189,6 +191,35 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+
+    /* ——— Workspace ——— */
+    .workspace-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .search-box {
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      margin: 0 auto;
+    }
+    .search-box input {
+      padding-left: 34px;
+    }
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    .add-btn-wrapper {
+      text-align: center;
     }
 
     /* ——— Kanban ——— */
@@ -369,6 +400,16 @@
       font-size: 14px;
       word-break: break-word;
       white-space: pre-wrap;
+      max-height: 150px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .view-field .value::-webkit-scrollbar {
+      width: 4px;
+    }
+    .view-field .value::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
     }
 
     /* ——— Комментарии ——— */
@@ -509,11 +550,9 @@
     /* ——— Адаптив ——— */
     @media (max-width: 900px) {
       .kanban-grid { grid-template-columns: 1fr; }
-      .workspace-header { flex-direction: column; align-items: stretch; }
-      .btn-add, .search-box { width: 100%; max-width: none; }
+      .search-box { max-width: 100%; }
     }
 
-    /* ——— Hidden ——— */
     .hidden { display: none !important; }
   </style>
 </head>
@@ -550,9 +589,11 @@
   <main id="crm-screen" class="crm-screen hidden">
     <div class="workspace-header">
       <div class="search-box">
-        <input type="search" id="global-search" placeholder="Поиск проектов... (Ctrl+K)" />
+        <input type="search" id="global-search" placeholder="Поиск проектов..." />
       </div>
-      <button class="btn btn-add" id="btn-open-modal">+ Новый проект</button>
+      <div class="add-btn-wrapper">
+        <button class="btn btn-add" id="btn-open-modal">+ Новый проект</button>
+      </div>
     </div>
 
     <div class="kanban-grid">
@@ -631,7 +672,7 @@
       </div>
       <div class="view-field">
         <label>Описание</label>
-        <div class="value" id="view-description" style="white-space:pre-wrap; word-break:break-word;"></div>
+        <div class="value" id="view-description" style="white-space:pre-wrap; word-break:break-word; max-height:150px; overflow-y:auto;"></div>
       </div>
       <div class="view-field">
         <label>Бюджет</label>
@@ -1080,6 +1121,7 @@
       }
     });
 
+    // Кнопка редактирования в модалке просмотра
     document.getElementById("btn-view-edit").addEventListener("click", () => {
       if (viewingDealId) {
         closeViewModal();
@@ -1250,7 +1292,6 @@
         )
         .join("");
 
-      // Обработчики для кнопок внутри корзины
       container.querySelectorAll(".restore-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
           const id = btn.dataset.id;
