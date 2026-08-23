@@ -231,25 +231,6 @@
       margin: 4px 0;
       word-break: break-word;
       line-height: 1.3;
-      cursor: pointer;
-      border-radius: 4px;
-      padding: 2px 4px;
-      transition: background 0.1s;
-    }
-    .deal-description:hover {
-      background: rgba(52, 211, 153, 0.08);
-    }
-    .deal-description-input {
-      width: 100%;
-      padding: 4px 6px;
-      font-size: 12px;
-      background: var(--input-bg);
-      border: 1px solid var(--accent);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: inherit;
-      outline: none;
-      margin: 4px 0;
     }
     .deal-budget {
       color: var(--accent);
@@ -262,14 +243,26 @@
       color: var(--muted);
       margin-top: 4px;
     }
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-end;
+    }
+    .btn-edit,
     .btn-delete {
-      align-self: flex-start;
       background: none;
       border: none;
-      color: #f87171;
       font-size: 16px;
       font-weight: bold;
       padding: 0 2px;
+      cursor: pointer;
+    }
+    .btn-edit {
+      color: #60a5fa;
+    }
+    .btn-delete {
+      color: #f87171;
     }
     .modal {
       position: fixed;
@@ -541,6 +534,29 @@
     </div>
   </div>
 
+  <!-- Модалка редактирования -->
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3 style="margin-top:0;">✏️ Редактировать проект</h3>
+      <div class="input-group">
+        <label for="edit-title">Название</label>
+        <input type="text" id="edit-title" placeholder="Введите название" />
+      </div>
+      <div class="input-group">
+        <label for="edit-description">Описание</label>
+        <textarea id="edit-description" rows="2" placeholder="Краткое описание проекта"></textarea>
+      </div>
+      <div class="input-group">
+        <label for="edit-budget">Бюджет (₸)</label>
+        <input type="number" id="edit-budget" min="0" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-save-edit">Сохранить</button>
+        <button class="btn btn-secondary" id="btn-close-edit">Отмена</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Модалка корзины -->
   <div id="trash-modal" class="modal hidden">
     <div class="modal-content wide">
@@ -603,12 +619,14 @@
     let allDeals = [];
     let unsubscribe = null;
     let currentUser = null;
+    let editingDealId = null; // для редактирования
 
     // DOM
     const loginScreen = document.getElementById("login-screen");
     const crmScreen = document.getElementById("crm-screen");
     const userInfo = document.getElementById("user-info");
     const dealModal = document.getElementById("deal-modal");
+    const editModal = document.getElementById("edit-modal");
     const trashModal = document.getElementById("trash-modal");
     const commandPalette = document.getElementById("command-palette");
     const globalSearch = document.getElementById("global-search");
@@ -692,19 +710,6 @@
       trashCountSpan.textContent = count;
     }
 
-    // ——— Редактирование описания ———
-    async function updateDescription(dealId, newDescription) {
-      try {
-        await updateDoc(doc(db, "deals", dealId), {
-          description: newDescription.trim() || "" // если пусто — сохраняем пустую строку
-        });
-        // Не показываем тост, чтобы не раздражать
-      } catch (e) {
-        toast("Ошибка обновления описания", "error");
-      }
-    }
-
-    // ——— Рендер карточек ———
     function renderDeals(filter = "") {
       const term = (filter || globalSearch.value || "").toLowerCase().trim();
 
@@ -712,6 +717,7 @@
         const container = document.getElementById(col);
         container.innerHTML = "";
 
+        // Активные (не удалённые) проекты в этой колонке
         const filtered = allDeals.filter(
           (d) =>
             d.status === col &&
@@ -744,123 +750,13 @@
           title.textContent = deal.title || "Без названия";
           content.appendChild(title);
 
-          // === ОПИСАНИЕ С ВОЗМОЖНОСТЬЮ РЕДАКТИРОВАНИЯ ===
-          const descWrapper = document.createElement("div");
-          descWrapper.className = "deal-description-wrapper";
-
-          const descDisplay = document.createElement("div");
-          descDisplay.className = "deal-description";
-          const displayText = deal.description ? deal.description : "✏️ Добавить описание";
-          descDisplay.textContent = displayText.length > 80 ? displayText.slice(0, 80) + "…" : displayText;
-          descDisplay.title = "Двойной клик для редактирования";
-
-          // При двойном клике заменяем на input
-          descDisplay.addEventListener("dblclick", () => {
-            const currentText = deal.description || "";
-            const input = document.createElement("input");
-            input.type = "text";
-            input.className = "deal-description-input";
-            input.value = currentText;
-            input.placeholder = "Введите описание...";
-            input.setAttribute("data-dealid", deal.id);
-
-            // Заменяем descDisplay на input
-            descWrapper.replaceChild(input, descDisplay);
-            input.focus();
-            input.select();
-
-            // Сохраняем при потере фокуса или Enter
-            const save = () => {
-              const newVal = input.value.trim();
-              // Если значение не изменилось или пустое, можно оставить как есть
-              // но мы всё равно обновим, чтобы можно было очистить
-              updateDescription(deal.id, newVal);
-              // Перерисовывать всю доску не будем, а просто обновим этот элемент
-              // Чтобы не пересоздавать всё, проще обновить через рендер, но это затратно.
-              // Лучше заменить input обратно на descDisplay с новым текстом
-              const newDisplay = document.createElement("div");
-              newDisplay.className = "deal-description";
-              const newText = newVal || "✏️ Добавить описание";
-              newDisplay.textContent = newText.length > 80 ? newText.slice(0, 80) + "…" : newText;
-              newDisplay.title = "Двойной клик для редактирования";
-              // Копируем обработчик
-              newDisplay.addEventListener("dblclick", descDisplay._listener || (() => {}));
-              // Просто клонируем обработчик: проще вызвать функцию повторно
-              const handler = function(e) {
-                const current = this.textContent;
-                const input2 = document.createElement("input");
-                input2.type = "text";
-                input2.className = "deal-description-input";
-                input2.value = (current === "✏️ Добавить описание") ? "" : current;
-                input2.placeholder = "Введите описание...";
-                input2.setAttribute("data-dealid", deal.id);
-                this.parentNode.replaceChild(input2, this);
-                input2.focus();
-                input2.select();
-                const save2 = () => {
-                  const newVal2 = input2.value.trim();
-                  updateDescription(deal.id, newVal2);
-                  const newDisplay2 = document.createElement("div");
-                  newDisplay2.className = "deal-description";
-                  const newText2 = newVal2 || "✏️ Добавить описание";
-                  newDisplay2.textContent = newText2.length > 80 ? newText2.slice(0, 80) + "…" : newText2;
-                  newDisplay2.title = "Двойной клик для редактирования";
-                  newDisplay2.addEventListener("dblclick", handler);
-                  input2.parentNode.replaceChild(newDisplay2, input2);
-                };
-                input2.addEventListener("blur", save2);
-                input2.addEventListener("keydown", (e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    input2.blur();
-                  }
-                  if (e.key === "Escape") {
-                    // отмена — возвращаем старый текст
-                    input2.parentNode.replaceChild(this, input2);
-                  }
-                });
-              };
-              // Сохраняем обработчик на новый элемент
-              newDisplay.addEventListener("dblclick", handler);
-              input.parentNode.replaceChild(newDisplay, input);
-            };
-
-            input.addEventListener("blur", save);
-            input.addEventListener("keydown", (e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                input.blur();
-              }
-              if (e.key === "Escape") {
-                // Отмена — возвращаем исходный текст
-                const origText = deal.description || "✏️ Добавить описание";
-                const newDisplay2 = document.createElement("div");
-                newDisplay2.className = "deal-description";
-                newDisplay2.textContent = origText.length > 80 ? origText.slice(0, 80) + "…" : origText;
-                newDisplay2.title = "Двойной клик для редактирования";
-                // Копируем тот же обработчик (можно использовать замыкание)
-                const handler2 = function(e) { /* тот же код */ };
-                // Просто пересоздадим элемент с тем же функционалом — для простоты переиспользуем функцию
-                // Но чтобы не усложнять, просто вызываем рендер всей доски (неоптимально, но надёжно)
-                // Вместо этого перезапустим renderDeals — но это приведёт к перерисовке всех карточек
-                // Чтобы сохранить состояние, лучше аккуратно обновить только эту карточку.
-                // Так как у нас реактивный рендер, можем обновить всю доску — это просто.
-                // В целях простоты сделаем так:
-                // Удаляем input, вставляем новый div с текстом, но без обработчика.
-                // Но если мы не сохраним обработчик, то редактирование сломается.
-                // Самый надёжный способ — перерендерить всё заново.
-                // Это приемлемо, так как у нас не очень много карточек.
-                renderDeals(globalSearch.value);
-              }
-            });
-          });
-
-          // Сохраняем ссылку на обработчик, чтобы можно было его клонировать позже
-          descDisplay._listener = descDisplay._listener || function(e) { /* будет переопределён */ };
-          // Но мы не будем сохранять, а просто создадим функцию один раз
-
-          descWrapper.appendChild(descDisplay);
-          content.appendChild(descWrapper);
+          if (deal.description) {
+            const desc = document.createElement("div");
+            desc.className = "deal-description";
+            const short = deal.description.length > 80 ? deal.description.slice(0, 80) + "…" : deal.description;
+            desc.textContent = short;
+            content.appendChild(desc);
+          }
 
           const budget = document.createElement("div");
           budget.className = "deal-budget";
@@ -872,17 +768,37 @@
           meta.textContent = deal.createdBy ? `от ${deal.createdBy.split("@")[0]}` : "";
           content.appendChild(meta);
 
-          const del = document.createElement("button");
-          del.className = "btn-delete";
-          del.textContent = "✕";
-          del.title = "Удалить";
-          del.onclick = (e) => {
+          // Блок кнопок
+          const actions = document.createElement("div");
+          actions.className = "card-actions";
+
+          const editBtn = document.createElement("button");
+          editBtn.className = "btn-edit";
+          editBtn.textContent = "✏️";
+          editBtn.title = "Редактировать";
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            openEditModal(deal.id);
+          };
+          actions.appendChild(editBtn);
+
+          const delBtn = document.createElement("button");
+          delBtn.className = "btn-delete";
+          delBtn.textContent = "✕";
+          delBtn.title = "Удалить";
+          delBtn.onclick = (e) => {
             e.stopPropagation();
             softDeleteDeal(deal.id);
           };
+          actions.appendChild(delBtn);
 
-          card.append(content, del);
+          card.append(content, actions);
           container.appendChild(card);
+
+          // Двойной клик для редактирования
+          card.addEventListener("dblclick", () => {
+            openEditModal(deal.id);
+          });
 
           card.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("text/plain", deal.id);
@@ -924,6 +840,48 @@
       } catch (e) {
         toast("Ошибка: " + e.message, "error");
       }
+    }
+
+    // Редактирование
+    function openEditModal(id) {
+      const deal = allDeals.find(d => d.id === id);
+      if (!deal) return;
+      editingDealId = id;
+      document.getElementById("edit-title").value = deal.title || "";
+      document.getElementById("edit-description").value = deal.description || "";
+      document.getElementById("edit-budget").value = deal.budget || 0;
+      editModal.classList.remove("hidden");
+      document.getElementById("edit-title").focus();
+    }
+
+    async function saveEditDeal() {
+      const id = editingDealId;
+      if (!id) return;
+      const title = document.getElementById("edit-title").value.trim();
+      const description = document.getElementById("edit-description").value.trim();
+      const budget = Number(document.getElementById("edit-budget").value) || 0;
+
+      if (!title) {
+        toast("Название не может быть пустым", "error");
+        return;
+      }
+
+      try {
+        await updateDoc(doc(db, "deals", id), {
+          title,
+          description,
+          budget,
+        });
+        toast("Проект обновлён");
+        closeEditModal();
+      } catch (e) {
+        toast("Ошибка сохранения: " + e.message, "error");
+      }
+    }
+
+    function closeEditModal() {
+      editModal.classList.add("hidden");
+      editingDealId = null;
     }
 
     // Мягкое удаление → в корзину
@@ -1000,6 +958,13 @@
     document.getElementById("btn-save-deal").addEventListener("click", createDeal);
     dealModal.addEventListener("click", (e) => {
       if (e.target === dealModal) closeModal();
+    });
+
+    // ——— Modal редактирования ———
+    document.getElementById("btn-close-edit").addEventListener("click", closeEditModal);
+    document.getElementById("btn-save-edit").addEventListener("click", saveEditDeal);
+    editModal.addEventListener("click", (e) => {
+      if (e.target === editModal) closeEditModal();
     });
 
     // ——— Trash Modal ———
@@ -1153,6 +1118,7 @@
       if (e.key === "Escape") {
         closeCommandPalette();
         closeModal();
+        closeEditModal();
         closeTrashModal();
       }
     });
