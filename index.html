@@ -210,11 +210,14 @@
       padding: 11px;
       border-radius: 6px;
       border: 1px solid var(--border);
-      cursor: grab;
+      cursor: pointer; /* меняем на pointer, чтобы было понятно, что кликабельно */
       display: flex;
       justify-content: space-between;
       gap: 8px;
-      transition: transform 0.15s;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .deal-card:hover {
+      background: var(--card);
     }
     .deal-card:active {
       cursor: grabbing;
@@ -432,6 +435,28 @@
       color: var(--danger);
       border-color: var(--danger);
     }
+    /* Стили для детальной модалки */
+    .detail-field {
+      margin-bottom: 12px;
+    }
+    .detail-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .detail-value {
+      font-size: 15px;
+      word-break: break-word;
+    }
+    .detail-value.description {
+      background: var(--bg);
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+    }
 
     @media (max-width: 900px) {
       .kanban-grid {
@@ -557,6 +582,41 @@
     </div>
   </div>
 
+  <!-- Модалка деталей (просмотр) -->
+  <div id="detail-modal" class="modal hidden">
+    <div class="modal-content wide">
+      <h3 style="margin-top:0;">📋 Детали проекта</h3>
+      <div class="detail-field">
+        <div class="detail-label">Название</div>
+        <div class="detail-value" id="detail-title">—</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Описание</div>
+        <div class="detail-value description" id="detail-description">—</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Бюджет</div>
+        <div class="detail-value" id="detail-budget">—</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Статус</div>
+        <div class="detail-value" id="detail-status">—</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Автор</div>
+        <div class="detail-value" id="detail-author">—</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Создан</div>
+        <div class="detail-value" id="detail-created">—</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="btn-detail-edit">✏️ Редактировать</button>
+        <button class="btn btn-secondary" id="btn-close-detail">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Модалка корзины -->
   <div id="trash-modal" class="modal hidden">
     <div class="modal-content wide">
@@ -616,10 +676,17 @@
     const db = getFirestore(app);
 
     const columns = ["Discussion", "In_Progress", "Testing", "Done"];
+    const statusMap = {
+      "Discussion": "💬 Обсуждение",
+      "In_Progress": "🛠️ В работе",
+      "Testing": "🧪 Тест",
+      "Done": "✅ Готово"
+    };
     let allDeals = [];
     let unsubscribe = null;
     let currentUser = null;
     let editingDealId = null; // для редактирования
+    let detailDealId = null;  // для просмотра
 
     // DOM
     const loginScreen = document.getElementById("login-screen");
@@ -627,6 +694,7 @@
     const userInfo = document.getElementById("user-info");
     const dealModal = document.getElementById("deal-modal");
     const editModal = document.getElementById("edit-modal");
+    const detailModal = document.getElementById("detail-modal");
     const trashModal = document.getElementById("trash-modal");
     const commandPalette = document.getElementById("command-palette");
     const globalSearch = document.getElementById("global-search");
@@ -742,6 +810,13 @@
           card.draggable = true;
           card.dataset.id = deal.id;
 
+          // Клик по карточке открывает детали
+          card.addEventListener("click", (e) => {
+            // Если клик был по кнопке — не открываем детали (чтобы не мешать редактированию/удалению)
+            if (e.target.closest(".btn-edit") || e.target.closest(".btn-delete")) return;
+            openDetailModal(deal.id);
+          });
+
           const content = document.createElement("div");
           content.style.flex = "1";
 
@@ -795,11 +870,6 @@
           card.append(content, actions);
           container.appendChild(card);
 
-          // Двойной клик для редактирования
-          card.addEventListener("dblclick", () => {
-            openEditModal(deal.id);
-          });
-
           card.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("text/plain", deal.id);
           });
@@ -842,7 +912,7 @@
       }
     }
 
-    // Редактирование
+    // ——— Редактирование ———
     function openEditModal(id) {
       const deal = allDeals.find(d => d.id === id);
       if (!deal) return;
@@ -884,7 +954,39 @@
       editingDealId = null;
     }
 
-    // Мягкое удаление → в корзину
+    // ——— Детальный просмотр ———
+    function openDetailModal(id) {
+      const deal = allDeals.find(d => d.id === id);
+      if (!deal) return;
+      detailDealId = id;
+      document.getElementById("detail-title").textContent = deal.title || "Без названия";
+      document.getElementById("detail-description").textContent = deal.description || "—";
+      document.getElementById("detail-budget").textContent = Number(deal.budget || 0).toLocaleString("ru-RU") + " ₸";
+      document.getElementById("detail-status").textContent = statusMap[deal.status] || deal.status;
+      document.getElementById("detail-author").textContent = deal.createdBy || "—";
+      if (deal.createdAt && deal.createdAt.seconds) {
+        const date = new Date(deal.createdAt.seconds * 1000);
+        document.getElementById("detail-created").textContent = date.toLocaleString("ru-RU");
+      } else {
+        document.getElementById("detail-created").textContent = "—";
+      }
+      detailModal.classList.remove("hidden");
+    }
+
+    function closeDetailModal() {
+      detailModal.classList.add("hidden");
+      detailDealId = null;
+    }
+
+    // Кнопка "Редактировать" в деталях
+    document.getElementById("btn-detail-edit").addEventListener("click", () => {
+      if (detailDealId) {
+        closeDetailModal();
+        openEditModal(detailDealId);
+      }
+    });
+
+    // ——— Мягкое удаление ———
     async function softDeleteDeal(id) {
       try {
         await updateDoc(doc(db, "deals", id), {
@@ -897,7 +999,7 @@
       }
     }
 
-    // Восстановление из корзины
+    // ——— Восстановление ———
     async function restoreDeal(id) {
       try {
         await updateDoc(doc(db, "deals", id), {
@@ -910,7 +1012,7 @@
       }
     }
 
-    // Полное удаление (безвозвратно)
+    // ——— Полное удаление ———
     async function permanentDeleteDeal(id) {
       if (!confirm("Удалить проект навсегда? Это действие необратимо.")) return;
       try {
@@ -965,6 +1067,12 @@
     document.getElementById("btn-save-edit").addEventListener("click", saveEditDeal);
     editModal.addEventListener("click", (e) => {
       if (e.target === editModal) closeEditModal();
+    });
+
+    // ——— Modal деталей ———
+    document.getElementById("btn-close-detail").addEventListener("click", closeDetailModal);
+    detailModal.addEventListener("click", (e) => {
+      if (e.target === detailModal) closeDetailModal();
     });
 
     // ——— Trash Modal ———
@@ -1026,7 +1134,7 @@
       });
     }
 
-    // Очистка корзины (все навсегда)
+    // Очистка корзины
     document.getElementById("btn-empty-trash").addEventListener("click", async () => {
       const deleted = allDeals.filter((d) => d.deleted === true);
       if (deleted.length === 0) {
@@ -1119,6 +1227,7 @@
         closeCommandPalette();
         closeModal();
         closeEditModal();
+        closeDetailModal();
         closeTrashModal();
       }
     });
