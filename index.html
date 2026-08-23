@@ -61,7 +61,6 @@
       cursor: pointer;
       font-family: inherit;
     }
-    .logout-btn,
     .theme-btn,
     .icon-btn {
       background: transparent;
@@ -76,6 +75,8 @@
       border: none;
       color: white;
       font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 6px;
     }
     .login-screen {
       max-width: 360px;
@@ -210,14 +211,11 @@
       padding: 11px;
       border-radius: 6px;
       border: 1px solid var(--border);
-      cursor: pointer; /* меняем на pointer, чтобы было понятно, что кликабельно */
+      cursor: pointer;
       display: flex;
       justify-content: space-between;
       gap: 8px;
-      transition: transform 0.15s, background 0.15s;
-    }
-    .deal-card:hover {
-      background: var(--card);
+      transition: transform 0.15s;
     }
     .deal-card:active {
       cursor: grabbing;
@@ -360,6 +358,15 @@
       justify-content: center;
       font-size: 12px;
       font-weight: 700;
+      cursor: pointer;
+      border: none;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .command-palette {
       position: fixed;
@@ -435,27 +442,40 @@
       color: var(--danger);
       border-color: var(--danger);
     }
-    /* Стили для детальной модалки */
-    .detail-field {
+
+    .view-field {
       margin-bottom: 12px;
     }
-    .detail-label {
+    .view-field label {
+      display: block;
       font-size: 11px;
       color: var(--muted);
       text-transform: uppercase;
-      font-weight: 600;
       margin-bottom: 2px;
     }
-    .detail-value {
-      font-size: 15px;
-      word-break: break-word;
+    .view-field .value {
+      font-size: 14px;
+      word-break: break-all;
     }
-    .detail-value.description {
-      background: var(--bg);
-      padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      white-space: pre-wrap;
+    .profile-avatar-large {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+      margin: 0 auto 16px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+    .profile-avatar-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     @media (max-width: 900px) {
@@ -478,7 +498,7 @@
   <header>
     <h1>🚀 Наша командная CRM</h1>
     <div id="user-info" class="header-actions hidden">
-      <div class="user-avatar" id="user-avatar">?</div>
+      <button class="user-avatar" id="user-avatar-btn" title="Профиль">?</button>
       <button class="icon-btn" id="btn-trash" title="Корзина">
         🗑️ <span id="trash-count">0</span>
       </button>
@@ -508,12 +528,9 @@
   <main id="crm-screen" class="crm-screen hidden">
     <div class="workspace-header">
       <div class="search-box">
-        <input type="search" id="global-search" placeholder="Поиск проектов... (Ctrl+K)" />
+        <input type="search" id="global-search" placeholder="Поиск проектов..." />
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-add" id="btn-open-modal">+ Новый проект</button>
-        <button class="btn btn-secondary" id="btn-auto" style="width:auto;padding:8px 12px;">⚡ Авто</button>
-      </div>
+      <button class="btn btn-add" id="btn-open-modal">+ Новый проект</button>
     </div>
 
     <div class="kanban-grid">
@@ -582,37 +599,64 @@
     </div>
   </div>
 
-  <!-- Модалка деталей (просмотр) -->
-  <div id="detail-modal" class="modal hidden">
+  <!-- Модалка просмотра карточки -->
+  <div id="view-modal" class="modal hidden">
     <div class="modal-content wide">
-      <h3 style="margin-top:0;">📋 Детали проекта</h3>
-      <div class="detail-field">
-        <div class="detail-label">Название</div>
-        <div class="detail-value" id="detail-title">—</div>
+      <h3 style="margin-top:0;" id="view-title">📄 Проект</h3>
+      <div class="view-field">
+        <label>Название</label>
+        <div class="value" id="view-name"></div>
       </div>
-      <div class="detail-field">
-        <div class="detail-label">Описание</div>
-        <div class="detail-value description" id="detail-description">—</div>
+      <div class="view-field">
+        <label>Описание</label>
+        <div class="value" id="view-description"></div>
       </div>
-      <div class="detail-field">
-        <div class="detail-label">Бюджет</div>
-        <div class="detail-value" id="detail-budget">—</div>
+      <div class="view-field">
+        <label>Бюджет</label>
+        <div class="value" id="view-budget"></div>
       </div>
-      <div class="detail-field">
-        <div class="detail-label">Статус</div>
-        <div class="detail-value" id="detail-status">—</div>
+      <div class="view-field">
+        <label>Статус</label>
+        <div class="value" id="view-status"></div>
       </div>
-      <div class="detail-field">
-        <div class="detail-label">Автор</div>
-        <div class="detail-value" id="detail-author">—</div>
-      </div>
-      <div class="detail-field">
-        <div class="detail-label">Создан</div>
-        <div class="detail-value" id="detail-created">—</div>
+      <div class="view-field">
+        <label>Автор</label>
+        <div class="value" id="view-author"></div>
       </div>
       <div class="modal-actions">
-        <button class="btn" id="btn-detail-edit">✏️ Редактировать</button>
-        <button class="btn btn-secondary" id="btn-close-detail">Закрыть</button>
+        <button class="btn" id="btn-view-edit">✏️ Редактировать</button>
+        <button class="btn btn-secondary" id="btn-close-view">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка профиля -->
+  <div id="profile-modal" class="modal hidden">
+    <div class="modal-content wide">
+      <h3 style="margin-top:0;">👤 Профиль</h3>
+      <div class="profile-avatar-large" id="profile-avatar-large">
+        <span id="profile-initials">?</span>
+        <img id="profile-avatar-img" class="hidden" alt="Фото профиля" />
+      </div>
+      <div style="text-align:center; margin-bottom:16px;">
+        <button class="btn btn-secondary" id="btn-upload-photo" style="width:auto; padding:8px 16px;">📸 Загрузить фото</button>
+        <input type="file" id="photo-input" accept="image/*" style="display:none;" />
+      </div>
+      <div class="view-field">
+        <label>Email</label>
+        <div class="value" id="profile-email"></div>
+      </div>
+      <div class="view-field">
+        <label>UID</label>
+        <div class="value" id="profile-uid" style="font-size:12px;"></div>
+      </div>
+      <div class="view-field">
+        <label>Дата регистрации</label>
+        <div class="value" id="profile-created"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="btn-profile-logout" style="background:var(--danger);">Выйти</button>
+        <button class="btn btn-secondary" id="btn-close-profile">Закрыть</button>
       </div>
     </div>
   </div>
@@ -621,9 +665,7 @@
   <div id="trash-modal" class="modal hidden">
     <div class="modal-content wide">
       <h3 style="margin-top:0;">🗑️ Корзина</h3>
-      <div id="trash-list" style="max-height:400px; overflow-y:auto;">
-        <!-- Список удалённых проектов -->
-      </div>
+      <div id="trash-list" style="max-height:400px; overflow-y:auto;"></div>
       <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
         <button class="btn btn-danger" id="btn-empty-trash" style="width:auto; padding:8px 16px;">Очистить корзину</button>
         <button class="btn btn-secondary" id="btn-close-trash" style="width:auto; padding:8px 16px;">Закрыть</button>
@@ -668,25 +710,28 @@
       onSnapshot,
       query,
       orderBy,
-      serverTimestamp
+      serverTimestamp,
+      getDoc,
+      setDoc
     } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     const columns = ["Discussion", "In_Progress", "Testing", "Done"];
-    const statusMap = {
-      "Discussion": "💬 Обсуждение",
-      "In_Progress": "🛠️ В работе",
-      "Testing": "🧪 Тест",
-      "Done": "✅ Готово"
-    };
     let allDeals = [];
     let unsubscribe = null;
     let currentUser = null;
-    let editingDealId = null; // для редактирования
-    let detailDealId = null;  // для просмотра
+    let editingDealId = null;
+    let viewingDealId = null;
 
     // DOM
     const loginScreen = document.getElementById("login-screen");
@@ -694,11 +739,13 @@
     const userInfo = document.getElementById("user-info");
     const dealModal = document.getElementById("deal-modal");
     const editModal = document.getElementById("edit-modal");
-    const detailModal = document.getElementById("detail-modal");
+    const viewModal = document.getElementById("view-modal");
+    const profileModal = document.getElementById("profile-modal");
     const trashModal = document.getElementById("trash-modal");
     const commandPalette = document.getElementById("command-palette");
     const globalSearch = document.getElementById("global-search");
     const trashCountSpan = document.getElementById("trash-count");
+    const userAvatarBtn = document.getElementById("user-avatar-btn");
 
     // ——— Theme ———
     const savedTheme = localStorage.getItem("crm_theme") || "dark";
@@ -727,14 +774,30 @@
       userInfo.classList.toggle("hidden", !isAuth);
 
       if (isAuth) {
-        const email = user.email || "?";
-        const initials = email.slice(0, 2).toUpperCase();
-        document.getElementById("user-avatar").textContent = initials;
-        document.getElementById("user-avatar").title = email;
+        updateAvatar(user.uid);
         subscribeDeals();
+        // Подписываемся на изменения профиля в Firestore
+        const userRef = doc(db, "users", user.uid);
+        onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.photoURL) {
+              userAvatarBtn.innerHTML = `<img src="${data.photoURL}" alt="Аватар" />`;
+            } else {
+              const email = user.email || "?";
+              const initials = email.slice(0, 2).toUpperCase();
+              userAvatarBtn.textContent = initials;
+            }
+          } else {
+            const email = user.email || "?";
+            const initials = email.slice(0, 2).toUpperCase();
+            userAvatarBtn.textContent = initials;
+          }
+        });
       } else {
         if (unsubscribe) unsubscribe();
         allDeals = [];
+        userAvatarBtn.textContent = "?";
       }
     });
 
@@ -755,7 +818,25 @@
 
     document.getElementById("btn-logout").addEventListener("click", () => signOut(auth));
 
-    // ——— Real-time deals (все, включая удалённые) ———
+    // ——— Обновление аватара ———
+    async function updateAvatar(uid) {
+      try {
+        const userRef = doc(db, "users", uid);
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists() && docSnap.data().photoURL) {
+          const url = docSnap.data().photoURL;
+          userAvatarBtn.innerHTML = `<img src="${url}" alt="Аватар" />`;
+        } else {
+          const email = currentUser?.email || "?";
+          const initials = email.slice(0, 2).toUpperCase();
+          userAvatarBtn.textContent = initials;
+        }
+      } catch (e) {
+        console.error("Ошибка загрузки аватара", e);
+      }
+    }
+
+    // ——— Real-time deals ———
     function subscribeDeals() {
       if (unsubscribe) unsubscribe();
       const q = query(collection(db, "deals"), orderBy("createdAt", "desc"));
@@ -785,7 +866,6 @@
         const container = document.getElementById(col);
         container.innerHTML = "";
 
-        // Активные (не удалённые) проекты в этой колонке
         const filtered = allDeals.filter(
           (d) =>
             d.status === col &&
@@ -809,13 +889,6 @@
           card.className = "deal-card";
           card.draggable = true;
           card.dataset.id = deal.id;
-
-          // Клик по карточке открывает детали
-          card.addEventListener("click", (e) => {
-            // Если клик был по кнопке — не открываем детали (чтобы не мешать редактированию/удалению)
-            if (e.target.closest(".btn-edit") || e.target.closest(".btn-delete")) return;
-            openDetailModal(deal.id);
-          });
 
           const content = document.createElement("div");
           content.style.flex = "1";
@@ -843,7 +916,6 @@
           meta.textContent = deal.createdBy ? `от ${deal.createdBy.split("@")[0]}` : "";
           content.appendChild(meta);
 
-          // Блок кнопок
           const actions = document.createElement("div");
           actions.className = "card-actions";
 
@@ -869,6 +941,16 @@
 
           card.append(content, actions);
           container.appendChild(card);
+
+          // Клик по карточке – просмотр
+          card.addEventListener("click", () => {
+            openViewModal(deal.id);
+          });
+
+          // Двойной клик – редактирование
+          card.addEventListener("dblclick", () => {
+            openEditModal(deal.id);
+          });
 
           card.addEventListener("dragstart", (e) => {
             e.dataTransfer.setData("text/plain", deal.id);
@@ -912,7 +994,7 @@
       }
     }
 
-    // ——— Редактирование ———
+    // Редактирование
     function openEditModal(id) {
       const deal = allDeals.find(d => d.id === id);
       if (!deal) return;
@@ -954,39 +1036,37 @@
       editingDealId = null;
     }
 
-    // ——— Детальный просмотр ———
-    function openDetailModal(id) {
+    // Просмотр карточки
+    function openViewModal(id) {
       const deal = allDeals.find(d => d.id === id);
       if (!deal) return;
-      detailDealId = id;
-      document.getElementById("detail-title").textContent = deal.title || "Без названия";
-      document.getElementById("detail-description").textContent = deal.description || "—";
-      document.getElementById("detail-budget").textContent = Number(deal.budget || 0).toLocaleString("ru-RU") + " ₸";
-      document.getElementById("detail-status").textContent = statusMap[deal.status] || deal.status;
-      document.getElementById("detail-author").textContent = deal.createdBy || "—";
-      if (deal.createdAt && deal.createdAt.seconds) {
-        const date = new Date(deal.createdAt.seconds * 1000);
-        document.getElementById("detail-created").textContent = date.toLocaleString("ru-RU");
-      } else {
-        document.getElementById("detail-created").textContent = "—";
-      }
-      detailModal.classList.remove("hidden");
+      viewingDealId = id;
+      document.getElementById("view-name").textContent = deal.title || "Без названия";
+      document.getElementById("view-description").textContent = deal.description || "—";
+      document.getElementById("view-budget").textContent = Number(deal.budget || 0).toLocaleString("ru-RU") + " ₸";
+      const statusMap = { "Discussion": "Обсуждение", "In_Progress": "В работе", "Testing": "Тест", "Done": "Готово" };
+      document.getElementById("view-status").textContent = statusMap[deal.status] || deal.status;
+      document.getElementById("view-author").textContent = deal.createdBy || "—";
+      viewModal.classList.remove("hidden");
     }
 
-    function closeDetailModal() {
-      detailModal.classList.add("hidden");
-      detailDealId = null;
+    function closeViewModal() {
+      viewModal.classList.add("hidden");
+      viewingDealId = null;
     }
 
-    // Кнопка "Редактировать" в деталях
-    document.getElementById("btn-detail-edit").addEventListener("click", () => {
-      if (detailDealId) {
-        closeDetailModal();
-        openEditModal(detailDealId);
+    document.getElementById("btn-view-edit").addEventListener("click", () => {
+      if (viewingDealId) {
+        closeViewModal();
+        openEditModal(viewingDealId);
       }
     });
+    document.getElementById("btn-close-view").addEventListener("click", closeViewModal);
+    viewModal.addEventListener("click", (e) => {
+      if (e.target === viewModal) closeViewModal();
+    });
 
-    // ——— Мягкое удаление ———
+    // Мягкое удаление
     async function softDeleteDeal(id) {
       try {
         await updateDoc(doc(db, "deals", id), {
@@ -999,7 +1079,6 @@
       }
     }
 
-    // ——— Восстановление ———
     async function restoreDeal(id) {
       try {
         await updateDoc(doc(db, "deals", id), {
@@ -1012,7 +1091,6 @@
       }
     }
 
-    // ——— Полное удаление ———
     async function permanentDeleteDeal(id) {
       if (!confirm("Удалить проект навсегда? Это действие необратимо.")) return;
       try {
@@ -1069,10 +1147,88 @@
       if (e.target === editModal) closeEditModal();
     });
 
-    // ——— Modal деталей ———
-    document.getElementById("btn-close-detail").addEventListener("click", closeDetailModal);
-    detailModal.addEventListener("click", (e) => {
-      if (e.target === detailModal) closeDetailModal();
+    // ——— Profile Modal ———
+    function openProfileModal() {
+      if (!currentUser) return;
+      const email = currentUser.email || "—";
+      const uid = currentUser.uid;
+      document.getElementById("profile-email").textContent = email;
+      document.getElementById("profile-uid").textContent = uid;
+      // Дата регистрации
+      if (currentUser.metadata && currentUser.metadata.creationTime) {
+        document.getElementById("profile-created").textContent = new Date(currentUser.metadata.creationTime).toLocaleString();
+      } else {
+        document.getElementById("profile-created").textContent = "—";
+      }
+      // Аватар в профиле
+      const avatarLarge = document.getElementById("profile-avatar-large");
+      const initialsSpan = document.getElementById("profile-initials");
+      const imgEl = document.getElementById("profile-avatar-img");
+      // Проверим фото из Firestore
+      const userRef = doc(db, "users", uid);
+      getDoc(userRef).then((docSnap) => {
+        if (docSnap.exists() && docSnap.data().photoURL) {
+          imgEl.src = docSnap.data().photoURL;
+          imgEl.classList.remove("hidden");
+          initialsSpan.classList.add("hidden");
+        } else {
+          imgEl.classList.add("hidden");
+          initialsSpan.classList.remove("hidden");
+          const init = email.slice(0, 2).toUpperCase();
+          initialsSpan.textContent = init;
+        }
+      }).catch(() => {});
+      profileModal.classList.remove("hidden");
+    }
+
+    function closeProfileModal() {
+      profileModal.classList.add("hidden");
+    }
+
+    userAvatarBtn.addEventListener("click", openProfileModal);
+    document.getElementById("btn-close-profile").addEventListener("click", closeProfileModal);
+    profileModal.addEventListener("click", (e) => {
+      if (e.target === profileModal) closeProfileModal();
+    });
+
+    // Выход из профиля
+    document.getElementById("btn-profile-logout").addEventListener("click", () => {
+      signOut(auth);
+      closeProfileModal();
+    });
+
+    // Загрузка фото
+    document.getElementById("btn-upload-photo").addEventListener("click", () => {
+      document.getElementById("photo-input").click();
+    });
+
+    document.getElementById("photo-input").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!currentUser) {
+        toast("Пользователь не авторизован", "error");
+        return;
+      }
+      try {
+        const storageRef = ref(storage, `profile_photos/${currentUser.uid}.jpg`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        // Сохраняем ссылку в Firestore
+        const userRef = doc(db, "users", currentUser.uid);
+        await setDoc(userRef, { photoURL: downloadURL }, { merge: true });
+        toast("Фото загружено!");
+        // Обновляем аватар
+        userAvatarBtn.innerHTML = `<img src="${downloadURL}" alt="Аватар" />`;
+        // Обновляем в модалке
+        const imgEl = document.getElementById("profile-avatar-img");
+        imgEl.src = downloadURL;
+        imgEl.classList.remove("hidden");
+        document.getElementById("profile-initials").classList.add("hidden");
+      } catch (err) {
+        toast("Ошибка загрузки фото: " + err.message, "error");
+        console.error(err);
+      }
+      e.target.value = ""; // очистить input
     });
 
     // ——— Trash Modal ———
@@ -1134,7 +1290,6 @@
       });
     }
 
-    // Очистка корзины
     document.getElementById("btn-empty-trash").addEventListener("click", async () => {
       const deleted = allDeals.filter((d) => d.deleted === true);
       if (deleted.length === 0) {
@@ -1176,8 +1331,8 @@
             closeCommandPalette(); }, kbd: "T" },
         { label: "Экспорт JSON", action: () => { exportJSON();
             closeCommandPalette(); }, kbd: "E" },
-        { label: "Авто-правило (бюджет > 500к → В работе)", action: () => { runAutomation();
-            closeCommandPalette(); }, kbd: "A" },
+        { label: "Открыть профиль", action: () => { closeCommandPalette();
+            openProfileModal(); }, kbd: "P" },
         { label: "Открыть корзину", action: () => { closeCommandPalette();
             openTrashModal(); }, kbd: "Del" },
       ];
@@ -1227,7 +1382,8 @@
         closeCommandPalette();
         closeModal();
         closeEditModal();
-        closeDetailModal();
+        closeViewModal();
+        closeProfileModal();
         closeTrashModal();
       }
     });
@@ -1283,20 +1439,6 @@
       };
       input.click();
     });
-
-    // ——— Автоматизация ———
-    async function runAutomation() {
-      let moved = 0;
-      const active = allDeals.filter((d) => !d.deleted);
-      for (const deal of active) {
-        if (deal.status === "Discussion" && Number(deal.budget) >= 500000) {
-          await updateStatus(deal.id, "In_Progress");
-          moved++;
-        }
-      }
-      toast(moved ? `Авто: перемещено ${moved}` : "Нет подходящих проектов");
-    }
-    document.getElementById("btn-auto").addEventListener("click", runAutomation);
 
     // Enter на логине
     document.getElementById("login-password").addEventListener("keydown", (e) => {
